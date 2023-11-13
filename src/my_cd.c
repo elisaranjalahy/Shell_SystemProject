@@ -31,7 +31,8 @@ int my_cd(char* cur, char* last, const char* query){
     char* np = calloc(MAX_STRING_LENGTH, sizeof(char));
     strcat(strcat(strcat(np, cur), "/"), query+  3);
 
-    if (stat(np, &sb) == 0 && (sb.st_mode & S_IFMT) == S_IFDIR){
+    if (stat(np, &sb) == 0){
+        if ((sb.st_mode & S_IFMT) == S_IFDIR){
         // If the path points to an existing directory
         strcpy(last, cur);
         strcat(strcat(cur, "/"), query + 3);
@@ -41,9 +42,16 @@ int my_cd(char* cur, char* last, const char* query){
 
         free(np);
         return 0;
+        } else {
+            write(1, "cd: ", 4);
+            write(1, query+3, strlen(query)-3);
+            write(1, " : Not a directory\n", strlen(" : Not a directory\n"));
+        }
+    } else {
+        write(1, "cd: ", 4);
+        write(1, query+3, strlen(query)-3);
+        write(1, " : No such file or directory\n", strlen(" : No such file or directory\n"));
     }
-    write(1, query+3, strlen(query)-3);
-    write(1, " : No such file or directory\n", strlen(" : No such file or directory\n"));
 
     free(np);
     return 1;
