@@ -9,6 +9,9 @@
 #include <unistd.h>
 
 int my_cd(char* cur, char* last, const char* query){
+    // Booléen indiquant si le chemin cherché est absolu ou relatif
+    int abs = (int)(strlen(query) > 3 && query[3] == '/');
+
     if (strlen(query) == 2 || (strlen(query) == 4 && query[3] == '~')){
         // No query, go home
         strcpy(last, cur);
@@ -26,21 +29,34 @@ int my_cd(char* cur, char* last, const char* query){
         return 0;
     }
 
-    struct stat sb;
-
+    // np représente le prochain chemin, celui que l'utilisateur demande
     char* np = calloc(MAX_STRING_LENGTH, sizeof(char));
-    strcat(strcat(strcat(np, cur), "/"), query+  3);
 
+    if (abs){
+        // Si la query est un chemin absolu
+        strcat(np, query + 3);
+    } else {
+        // Sinon, on concatène avec le chemin actuel
+        strcat(strcat(strcat(np, cur), "/"), query + 3);
+    }
+
+    struct stat sb;
     if (stat(np, &sb) == 0){
         if ((sb.st_mode & S_IFMT) == S_IFDIR){
         // If the path points to an existing directory
+        // effectively change the cwd
         strcpy(last, cur);
-        strcat(strcat(cur, "/"), query + 3);
+        strcpy(cur, query + 3);
 
-        if (realpath(cur, np) == NULL){exit(0);}
-        strcpy(cur, np);
+        char* temp = calloc(MAX_STRING_LENGTH, sizeof(char));
+        if (realpath(np, temp) == NULL){
+            if (abs){write(1, "r", 1);}
+            write(1, "trouvé le pb", strlen("trouvé le pb"));
+        }
+        strcpy(cur, temp);
 
         free(np);
+        free(temp);
         return 0;
         } else {
             write(1, "cd: ", 4);
