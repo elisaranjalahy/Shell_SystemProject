@@ -45,7 +45,6 @@ int main(){
     job_list* jobs = new_job_list();
     rl_outstream = stderr;  // Affichage du prompt sur la sortie erreur
 
-    int out_fd = 2;
     int qlength;
 
     // cur_path représente le chemain depuis home vers là ou l'utilisateur est.
