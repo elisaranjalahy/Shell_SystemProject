@@ -9,7 +9,7 @@
 #include <unistd.h>
 
 int my_cd(char* cur, char* last, const char* query){
-    if (strlen(query) == 2){
+    if (strlen(query) == 2 || (strlen(query) == 4 && query[3] == '~')){
         // No query, go home
         strcpy(last, cur);
         strcpy(cur, getenv("HOME"));
