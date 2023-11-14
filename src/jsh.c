@@ -26,13 +26,13 @@ char* mkprompt(job_list* jobs, char* cur_path){
     } else {
         strcat(prompt, cur_path);
     }
-
     return strcat(prompt, "\001\033[0m\002$ ");
 }
 
 int main(){
     job_list* jobs = new_job_list();
     rl_outstream = stderr;
+    int last_cmd_success;
 
     int qlength;
 
@@ -56,12 +56,25 @@ int main(){
         qlength = strlen(query);
 
         if (qlength > 1 && query[0] == 'c' && query[1] == 'd' && (qlength == 2 || query[2] == ' ')){
-            my_cd(cur_path, last_path, query);
+            last_cmd_success = my_cd(cur_path, last_path, query);
+        }else if(qlength ==1 && query[0] == '?'){
+            if(last_cmd_success!=0){
+                write(1, "1",1);
+                write(1,"\n",1);
+            }else{
+                write(1,"0",1);
+                write(1,"\n",1);
+            }
+        }else{
+            last_cmd_success = 1;
         }
+
+
+
+        
 
         if (query){free(query);}
     }
-
     free(cur_path);
     free(last_path);
     return 0;
