@@ -14,26 +14,38 @@
 
 char* mkprompt(job_list* jobs, char* cur_path){
 
+    // Allocation de l'espace stockant le prompt
     char* prompt = calloc(MAX_STRING_LENGTH, sizeof(char));
-    char* njob = utos(jobs->length);
+
+    // Création de la première partie du prompt
+    // le nombre de jobs, en rouge et en gras
+    char* njob = utos(jobs->length);    // char* du nombre de jobs en cours
     strcat(strcat(strcat(prompt, "\001\033[31;1m\002["), njob), "]\001\033[36;22m\002");
     free(njob);
 
+    // Création de la deuxième partie du prompt
+    // le chemin actuel, eventuellement tronqué
+    // On veut une longueur d'au plus 28 afin de rajouter
+    // `$ ` à la fin sans dépasser 30 de longueur
     int l = my_strlen(prompt) + my_strlen(cur_path) - 28;
     if (l>0) {
+        // Si le chemin est trop long on le fait commencer
+        // par des points de suspension
         strcat(prompt, "...");
         strcat(prompt, cur_path + l + 3);
     } else {
         strcat(prompt, cur_path);
     }
 
+    // Finalisation du prompt
     return strcat(prompt, "\001\033[0m\002$ ");
 }
 
 int main(){
     job_list* jobs = new_job_list();
-    rl_outstream = stderr;
+    rl_outstream = stderr;  // Affichage du prompt sur la sortie erreur
 
+    int out_fd = 2;
     int qlength;
 
     // cur_path représente le chemain depuis home vers là ou l'utilisateur est.
@@ -56,6 +68,7 @@ int main(){
         qlength = strlen(query);
 
         if (qlength > 1 && query[0] == 'c' && query[1] == 'd' && (qlength == 2 || query[2] == ' ')){
+            // Si la commande de l'utilisateur est `cd`
             my_cd(cur_path, last_path, query);
         }
 
