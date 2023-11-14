@@ -50,9 +50,11 @@ int main(){
 
     // cur_path représente le chemain depuis home vers là ou l'utilisateur est.
     char* cur_path = calloc(MAX_STRING_LENGTH, sizeof(char));
-    // last_path représente le chemin précédent.
+    // last_path représente le chemin précédent, utile pour `cd`
     char* last_path = calloc(MAX_STRING_LENGTH, sizeof(char));
 
+    // Récupération du chemin menant au lieu
+    // d'exécution de jsh
     if (realpath(".", cur_path) == NULL){exit(0);}
     strcpy(last_path, cur_path);
 
@@ -69,6 +71,7 @@ int main(){
 
         if (qlength > 1 && query[0] == 'c' && query[1] == 'd' && (qlength == 2 || query[2] == ' ')){
             // Si la commande de l'utilisateur est `cd`
+            // Si possible, simplifier ce `if` dans le futur, il est horrible
             my_cd(cur_path, last_path, query);
         }
 
