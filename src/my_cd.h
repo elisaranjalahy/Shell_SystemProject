@@ -7,4 +7,4 @@
  * @param query where the user wants to go
  * @return 0 on success, else 1
  */
-int my_cd(char* cur, char* last, const char* query);
+int my_cd(char* cur, const char* directory);
