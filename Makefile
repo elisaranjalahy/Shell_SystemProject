@@ -13,11 +13,11 @@ TARGET = jsh
 all: $(TARGET)
 
 $(TARGET): $(OBJ_FILES)
-	$(CC) $(CFLAGS) $^ -o $@ -lreadline
+	$(CC) $(CFLAGS) $^ -o $@ -lreadline -g
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(BUILD_DIR)
-	$(CC) $(CFLAGS) -c $< -o $@ -lreadline
+	$(CC) $(CFLAGS) -c $< -o $@ -lreadline -g
 
 clean:
 	rm -rf $(BUILD_DIR) $(TARGET)
