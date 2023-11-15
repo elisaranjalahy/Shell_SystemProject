@@ -48,19 +48,9 @@ int main(){
     int last_cmd_success;
     int qlength;
 
-    // cur_path représente le chemain depuis home vers là ou l'utilisateur est.
-    char* cur_path = calloc(MAX_STRING_LENGTH, sizeof(char));
-    // last_path représente le chemin précédent, utile pour `cd`
-    char* last_path = calloc(MAX_STRING_LENGTH, sizeof(char));
-
-    // Récupération du chemin menant au lieu
-    // d'exécution de jsh
-    if (realpath(".", cur_path) == NULL){exit(0);}
-    strcpy(last_path, cur_path);
-
     // Boucle lisant l'entrée utilisateur.
     for (;;){
-        char* prompt = mkprompt(jobs, cur_path);
+        char* prompt = mkprompt(jobs, getenv("PWD"));
         char* query = readline(prompt);
 
         free(prompt);
@@ -72,7 +62,7 @@ int main(){
         if (qlength > 1 && query[0] == 'c' && query[1] == 'd' && (qlength == 2 || query[2] == ' ')){
             // Si la commande de l'utilisateur est `cd`
             // Si possible, simplifier ce `if` dans le futur, il est horrible
-            last_cmd_success = my_cd(cur_path, last_path, query);
+            last_cmd_success = my_cd(getenv("PWD"), query);
         }else if(qlength ==1 && query[0] == '?'){
             if(last_cmd_success!=0){
                 write(1, "1",1);
@@ -88,7 +78,5 @@ int main(){
         if (query){free(query);}
     }
 
-    free(cur_path);
-    free(last_path);
     return 0;
 }
