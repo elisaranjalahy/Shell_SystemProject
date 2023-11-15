@@ -44,11 +44,8 @@ char* mkprompt(job_list* jobs, char* cur_path){
 int main(){
     job_list* jobs = new_job_list();
     rl_outstream = stderr;  // Affichage du prompt sur la sortie erreur
-<<<<<<< HEAD
 
-=======
     int last_cmd_success;
->>>>>>> lastCmdSuccess
     int qlength;
 
     // cur_path représente le chemain depuis home vers là ou l'utilisateur est.
@@ -75,9 +72,7 @@ int main(){
         if (qlength > 1 && query[0] == 'c' && query[1] == 'd' && (qlength == 2 || query[2] == ' ')){
             // Si la commande de l'utilisateur est `cd`
             // Si possible, simplifier ce `if` dans le futur, il est horrible
-<<<<<<< HEAD
-            my_cd(cur_path, last_path, query);
-=======
+            last_cmd_success = my_cd(cur_path, last_path, query);
         }else if(qlength ==1 && query[0] == '?'){
             if(last_cmd_success!=0){
                 write(1, "1",1);
@@ -88,7 +83,6 @@ int main(){
             }
         }else{
             last_cmd_success = 1;
->>>>>>> lastCmdSuccess
         }
 
         if (query){free(query);}
