@@ -1,16 +1,7 @@
 #define _XOPEN_SOURCE 700 // C'est de la magie noire.
+#include "lib.h"
+#include "utils.h"
 
-#include "my_cd.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-
-#include <limits.h>
-#include <readline/readline.h>
-#include <readline/history.h>
-
-#include <sys/stat.h>
 
 char* mkprompt(job_list* jobs, char* cur_path){
 
@@ -43,7 +34,7 @@ char* mkprompt(job_list* jobs, char* cur_path){
 
 int main(){
     job_list* jobs = new_job_list();
-    rl_outstream = stderr;  // Affichage du prompt sur la sortie erreur
+   // rl_outstream = stderr;  // Affichage du prompt sur la sortie erreur
 
     int last_cmd_success;
     int qlength;
@@ -62,19 +53,28 @@ int main(){
         if (qlength > 1 && query[0] == 'c' && query[1] == 'd' && (qlength == 2 || query[2] == ' ')){
             // Si la commande de l'utilisateur est `cd`
             // Si possible, simplifier ce `if` dans le futur, il est horrible
+<<<<<<< HEAD
             last_cmd_success = my_cd(getenv("PWD"), query);
+=======
+            last_cmd_success = my_cd(cur_path, last_path, query);
+        //commande "?"
+        }else if(qlength ==3 && query[0] =='p' && query[1] == 'w' && query[2] == 'd'){
+            last_cmd_success = pwd(cur_path);
+>>>>>>> pwd
         }else if(qlength ==1 && query[0] == '?'){
-            if(last_cmd_success!=0){
-                write(1, "1",1);
+            if(last_cmd_success!=0){ 
+                //retourne 1 si la derniere commande exécutée etait un echec
+                write(1, "1",1); 
                 write(1,"\n",1);
             }else{
-                write(1,"0",1);
+                // retourne 0 sinon
+                write(1,"0",1); 
                 write(1,"\n",1);
             }
         }else{
             last_cmd_success = 1;
         }
-
+    
         if (query){free(query);}
     }
 
