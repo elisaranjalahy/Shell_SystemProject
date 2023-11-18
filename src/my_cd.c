@@ -1,12 +1,7 @@
 #define _XOPEN_SOURCE 700 // C'est de la magie noire.
 
 #include "utils.h"
-#include <sys/stat.h>
-#include <limits.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
+#include "lib.h"
 
 int my_cd(char* cur, char* last, const char* query){
     // Booléen indiquant si le chemin cherché est absolu ou relatif
