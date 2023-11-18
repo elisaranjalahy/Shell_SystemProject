@@ -1,12 +1,7 @@
 #define _XOPEN_SOURCE 700 // C'est de la magie noire.
 
 #include "utils.h"
-#include <sys/stat.h>
-#include <limits.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
+#include "lib.h"
 
 int my_cd(const char* cur, const char* directory){
     // Les étapes ci-dessous sont celles explicités dans le manuel.
