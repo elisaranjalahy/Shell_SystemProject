@@ -77,7 +77,8 @@ int main(){
                 write(1,"0\n",2);
             }
         }else{
-            last_cmd_success = 1;
+            // Exécution d'une commande externe
+            last_cmd_success = execute_ext_cmd(argv);
         }
 
         for (int i=0; i<argc; free(argv[i++])){}
