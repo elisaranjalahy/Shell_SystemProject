@@ -16,10 +16,9 @@
  int pwd(char* cur);
 
  /**
- * Changes the current directory if query is valid.
- * @param cur the current path
- * @param last the previous path
- * @param query where the user wants to go
- * @return 0 on success, else 1
+ * Change le répertoire courant si directory est valide.
+ * @param cur le chemin courant
+ * @param query la recherche de l'utilisateur
+ * @return 1 en cas d'erreur, sinon 0
  */
-int my_cd(char* cur, char* last, const char* query);
+int my_cd(char* cur, const char* directory);
