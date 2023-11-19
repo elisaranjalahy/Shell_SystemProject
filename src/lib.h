@@ -21,4 +21,4 @@
  * @param query la recherche de l'utilisateur
  * @return 1 en cas d'erreur, sinon 0
  */
-int my_cd(char* cur, const char* directory);
+int my_cd(char* cur, char** directory);

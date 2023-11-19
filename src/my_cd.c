@@ -3,13 +3,32 @@
 #include "utils.h"
 #include "lib.h"
 
-int my_cd(char* cur, const char* directory){
+int my_cd(char* cur, char** query){
+    char option = 'D';
+    int has_opt = 0;
+    int argc = argvlen(query);
+
+    char* directory = calloc(MAX_STRING_LENGTH, sizeof(char));
+
+    if (argc == 0){strcpy(directory, "~");}
+    else {
+        if (strcmp(query[0], "-L") == 0 || strcmp(query[0], "-P") == 0){
+            option = query[0][1];
+            has_opt++;
+        }
+        if (argc > has_opt + 1){
+            write(1, "cd: too many arguments\n", strlen("cd: too many arguments\n"));
+            return 1;
+        }
+        if (argc == has_opt){strcpy(directory, "~");}
+        else {strcpy(directory, query[has_opt]);}
+    }
+
     // Les étapes ci-dessous sont celles explicités dans le manuel.
-    int dirlen = strlen(directory); // Par souci d'optimisation.
     int found_file = 0;
 
     // Étapes 1-2
-    if (dirlen == 2 || (dirlen == 4 && directory[3] == '~')){
+    if (strcmp(directory, "~") == 0){
         // Pas de requête, on tente de rejoindre le home.
         char* curpath = getenv("HOME");
         if (curpath && setenv("OLDPWD", cur, 1) == 0 && setenv("PWD", curpath, 1) == 0){
@@ -18,7 +37,7 @@ int my_cd(char* cur, const char* directory){
         return 1;
     }
 
-    if (strlen(directory) == 4 && directory[3] == '-'){
+    if (strcmp(directory, "-") == 0){
         // Go to previous directory
         char* curpath = getenv("OLDPWD");
         if (curpath && setenv("OLDPWD", cur, 1) == 0 && setenv("PWD", curpath, 1) == 0){
@@ -32,13 +51,13 @@ int my_cd(char* cur, const char* directory){
     char* curpath = calloc(MAX_STRING_LENGTH, sizeof(char));
 
     // Étape 3
-    if (dirlen > 3 && directory[3] == '/'){
-        strcpy(curpath, directory + 3);
+    if (directory && directory[0] == '/'){
+        strcpy(curpath, directory);
         goto etape7;
     }
 
     // Étape 4
-    if (dirlen > 3 && directory[3] == '.'){
+    if (directory && directory[0] == '.'){
         goto etape6;
     }
 
@@ -65,7 +84,7 @@ int my_cd(char* cur, const char* directory){
             strcat(np, "/");
         }
 
-        strcat(np, directory + 3);
+        strcat(np, directory);
         if (stat(np, &sb) == 0){
             if ((sb.st_mode & S_IFMT) == S_IFDIR){
                 // On a trouvé le bon dossier
@@ -86,7 +105,7 @@ int my_cd(char* cur, const char* directory){
 
     // Étape 6
     etape6:
-    strcpy(curpath, directory + 3);
+    strcpy(curpath, directory);
 
     // Étape 7
     etape7:
@@ -99,12 +118,15 @@ int my_cd(char* cur, const char* directory){
     }
 
     // Étape 8-9 TODO
+    if (option == 'L'){
+        //TODO
+    }
 
     // Étape 10
     if (found_file){
         free(curpath);
         write(1, "cd: ", 4);
-        write(1, directory + 3, strlen(directory) - 3);
+        write(1, directory, strlen(directory));
         write(1, " : Not a directory\n", strlen(" : Not a directory\n"));
         return 1;
     }
@@ -121,7 +143,7 @@ int my_cd(char* cur, const char* directory){
     free(_curpath);
     free(curpath);
     write(1, "cd: ", 4);
-    write(1, directory + 3, strlen(directory) - 3);
+    write(1, directory, strlen(directory));
     write(1, " : No such file or directory\n", strlen(" : No such file or directory\n"));
     return 1;
 }

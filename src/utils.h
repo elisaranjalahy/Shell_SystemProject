@@ -31,13 +31,21 @@ char* utos(unsigned int n);
 int my_strlen(const char* str);
 
 /**
- * Returns a path of the form ../../..
- * that goes from the executable to home
+ * Transforme l'entrée en un char* à la
+ * façon de l'argument argv du main usuel.
  *
- * @param jsh_loc the path to the jsh executable
- * @return the path back to home
+ * @param query le char* à transformer
+ * @return l'entrée transformée, sans espaces
  */
-char* get_home_location(char* jsh_loc);
+char** my_to_argv(char* query);
+
+/**
+ * Renvoie la longueur d'un array de strings
+ *
+ * @param argv un char** se terminant par un pointeur NULL
+ * @return la longueur de argv
+ */
+int argvlen(char** argv);
 
 //////
 //          Jobs
