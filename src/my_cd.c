@@ -3,7 +3,7 @@
 #include "utils.h"
 #include "lib.h"
 
-int my_cd(const char* cur, const char* directory){
+int my_cd(char* cur, const char* directory){
     // Les étapes ci-dessous sont celles explicités dans le manuel.
     int dirlen = strlen(directory); // Par souci d'optimisation.
     int found_file = 0;
