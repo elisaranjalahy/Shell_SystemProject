@@ -34,10 +34,10 @@ char* mkprompt(job_list* jobs, char* cur_path){
 
 int main(){
     job_list* jobs = new_job_list();
-   // rl_outstream = stderr;  // Affichage du prompt sur la sortie erreur
+    rl_outstream = stderr;  // Affichage du prompt sur la sortie erreur
 
     int last_cmd_success;
-    int qlength;
+    int argc;
 
     // Boucle lisant l'entrée utilisateur.
     for (;;){
@@ -45,19 +45,24 @@ int main(){
         char* query = readline(prompt);
 
         free(prompt);
+
+        if (!query){
+            continue;
+        }
+
         add_history(query);
+        char** argv = my_to_argv(query);
+        argc = argvlen(argv);
+        free(query);
 
-        // Façon temporaire de reconnaitre les commandes
-        qlength = strlen(query);
+        //write(1, utos(argvlen(argv+1)), strlen(utos(argvlen(argv+1))));
+        //break;
 
-        if (qlength > 1 && query[0] == 'c' && query[1] == 'd' && (qlength == 2 || query[2] == ' ')){
-            // Si la commande de l'utilisateur est `cd`
-            // Si possible, simplifier ce `if` dans le futur, il est horrible
-            last_cmd_success = my_cd(getenv("PWD"), query);
-        //commande "?"
-        }else if(qlength ==3 && query[0] =='p' && query[1] == 'w' && query[2] == 'd'){
+        if (strcmp(argv[0], "cd") == 0){
+            last_cmd_success = my_cd(getenv("PWD"), argv + 1);
+        }else if(strcmp(argv[0], "pwd") == 0){
             last_cmd_success = pwd(getenv("PWD"));
-        }else if(qlength ==1 && query[0] == '?'){
+        }else if(strcmp(argv[0], "?") == 0){
             if(last_cmd_success!=0){
                 //retourne 1 si la derniere commande exécutée etait un echec
                 write(1, "1",1);
@@ -71,7 +76,8 @@ int main(){
             last_cmd_success = 1;
         }
 
-        if (query){free(query);}
+        for (int i=0; i<argc; free(argv[i++])){}
+        free(argv);
     }
 
     return 0;
