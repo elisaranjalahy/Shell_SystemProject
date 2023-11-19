@@ -53,28 +53,24 @@ int main(){
         if (qlength > 1 && query[0] == 'c' && query[1] == 'd' && (qlength == 2 || query[2] == ' ')){
             // Si la commande de l'utilisateur est `cd`
             // Si possible, simplifier ce `if` dans le futur, il est horrible
-<<<<<<< HEAD
             last_cmd_success = my_cd(getenv("PWD"), query);
-=======
-            last_cmd_success = my_cd(cur_path, last_path, query);
         //commande "?"
         }else if(qlength ==3 && query[0] =='p' && query[1] == 'w' && query[2] == 'd'){
-            last_cmd_success = pwd(cur_path);
->>>>>>> pwd
+            last_cmd_success = pwd(getenv("PWD"));
         }else if(qlength ==1 && query[0] == '?'){
-            if(last_cmd_success!=0){ 
+            if(last_cmd_success!=0){
                 //retourne 1 si la derniere commande exécutée etait un echec
-                write(1, "1",1); 
+                write(1, "1",1);
                 write(1,"\n",1);
             }else{
                 // retourne 0 sinon
-                write(1,"0",1); 
+                write(1,"0",1);
                 write(1,"\n",1);
             }
         }else{
             last_cmd_success = 1;
         }
-    
+
         if (query){free(query);}
     }
 
