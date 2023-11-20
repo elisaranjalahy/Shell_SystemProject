@@ -3,3 +3,6 @@ build
 
 src/.vscode
 .vscode
+
+foo
+foo.c
