@@ -47,7 +47,8 @@ int main(){
         free(prompt);
 
         if (!query){
-            continue;
+            // Ctrl+D ou problème d'allocation dans readline
+            exit(last_cmd_success);
         }
 
         add_history(query);
