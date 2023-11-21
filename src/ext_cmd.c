@@ -1,12 +1,13 @@
 #include "lib.h"
 
-int execute_ext_cmd(char **args) {
+int execute_ext_cmd(char **query) {
 
     pid_t pid = fork();
 
     if (pid == 0) {
         // Processus fils
-        execvp(args[0], args);
+        char*q[] = {"/bin/bash", "-c", query, NULL};
+	execvp(q[0],q);
         perror("Erreur lors de l'exécution de la commande");//si execvp s'est bien déroulé bien, on atteint pas ce perror
         exit(EXIT_FAILURE);
     } else if (pid < 0) {
