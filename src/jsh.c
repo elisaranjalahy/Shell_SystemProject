@@ -36,7 +36,7 @@ int main(){
     job_list* jobs = new_job_list();
     rl_outstream = stderr;  // Affichage du prompt sur la sortie erreur
 
-    int last_cmd_success;
+    int last_cmd_success = 0;
     int argc;
 
     // Boucle lisant l'entrée utilisateur.
@@ -56,8 +56,19 @@ int main(){
         argc = argvlen(argv);
         free(query);
 
-        //write(1, utos(argvlen(argv+1)), strlen(utos(argvlen(argv+1))));
-        //break;
+        // Récupération de la valeur des
+        // variables d'environnement
+        char* is_env = calloc(argc, sizeof(char));
+        char* k;
+        for (int i = 0; i<argc; i++){
+            if (argv[i][0] == '$'){
+                k = getenv(argv[i]+1);
+                if (k){
+                    argv[i] = k;
+                    is_env[i]++;
+                }
+            }
+        }
 
         if (strcmp(argv[0], "cd") == 0){
             last_cmd_success = my_cd(getenv("PWD"), argv + 1);
@@ -82,8 +93,11 @@ int main(){
             last_cmd_success = execute_ext_cmd(argv);
         }
 
-        for (int i=0; i<argc; free(argv[i++])){}
+        for (int i=0; i<argc; i++){
+            if (!is_env[i]){free(argv[i]);}
+        }
         free(argv);
+        free(is_env);
     }
 
     return 0;
