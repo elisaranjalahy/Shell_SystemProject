@@ -6,8 +6,7 @@ int execute_ext_cmd(char **query) {
 
     if (pid == 0) {
         // Processus fils
-        char*q[] = {"/bin/bash", "-c", query[0],query[1], NULL};
-	execvp(q[0],q);
+	    execvp(query[0],query);
         perror("Erreur lors de l'exécution de la commande");//si execvp s'est bien déroulé bien, on atteint pas ce perror
         exit(EXIT_FAILURE);
     } else if (pid < 0) {
@@ -25,5 +24,4 @@ int execute_ext_cmd(char **query) {
             return -1; // donc on renvoie une valeur indiquant une erreur
         }
     }
-    
 }
