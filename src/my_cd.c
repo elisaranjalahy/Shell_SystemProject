@@ -17,7 +17,7 @@ int my_cd(char* cur, char** query){
             has_opt++;
         }
         if (argc > has_opt + 1){
-            write(1, "cd: too many arguments\n", strlen("cd: too many arguments\n"));
+            write(2,"cd: too many arguments", strlen("cd: too many arguments"));
             return 1;
         }
         if (argc == has_opt){strcpy(directory, "~");}
@@ -125,9 +125,9 @@ int my_cd(char* cur, char** query){
     // Étape 10
     if (found_file){
         free(curpath);
-        write(1, "cd: ", 4);
-        write(1, directory, strlen(directory));
-        write(1, " : Not a directory\n", strlen(" : Not a directory\n"));
+        write(2, "cd: ", 4);
+        write(2, directory, strlen(directory));
+        write(2, " : Not a directory\n", strlen(" : Not a directory\n"));
         return 1;
     }
 
@@ -142,8 +142,8 @@ int my_cd(char* cur, char** query){
 
     free(_curpath);
     free(curpath);
-    write(1, "cd: ", 4);
-    write(1, directory, strlen(directory));
-    write(1, " : No such file or directory\n", strlen(" : No such file or directory\n"));
+    write(2, "cd: ", 4);
+    write(2, directory, strlen(directory));
+    write(2, " : No such file or directory\n", strlen(" : No such file or directory\n"));
     return 1;
 }
