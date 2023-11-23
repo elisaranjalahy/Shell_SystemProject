@@ -1,14 +1,13 @@
-#define _XOPEN_SOURCE 700 // C'est de la magie noire.
+#define _XOPEN_SOURCE 700 // Pour que realpath() fonctionne
 
 #include "utils.h"
-#include "lib.h"
 
 int my_cd(char* cur, char** query){
     char option = 'D';
     int has_opt = 0;
     int argc = argvlen(query);
 
-    char* directory = calloc(MAX_STRING_LENGTH, sizeof(char));
+    char* directory = calloc(PATH_MAX, sizeof(char));
 
     if (argc == 0){strcpy(directory, "~");}
     else {
@@ -48,7 +47,7 @@ int my_cd(char* cur, char** query){
         return 1;
     }
     // Initialisation de curpath utile pour les prochaines étapes.
-    char* curpath = calloc(MAX_STRING_LENGTH, sizeof(char));
+    char* curpath = calloc(PATH_MAX, sizeof(char));
 
     // Étape 3
     if (directory && directory[0] == '/'){
@@ -62,7 +61,7 @@ int my_cd(char* cur, char** query){
     }
 
     // Étape 5
-    char* CDPATH = calloc(MAX_STRING_LENGTH, sizeof(char));
+    char* CDPATH = calloc(PATH_MAX, sizeof(char));
     strcpy(CDPATH, cur);
 
     // Ajout du chemin actuel
@@ -76,7 +75,7 @@ int my_cd(char* cur, char** query){
     char *token = strtok(CDPATH, ":");
 
     while (token != NULL) {
-        char* np = calloc(MAX_STRING_LENGTH, sizeof(char));
+        char* np = calloc(PATH_MAX, sizeof(char));
         if(!np){free(CDPATH);return 1;}
         strcpy(np, token);
 
@@ -110,7 +109,7 @@ int my_cd(char* cur, char** query){
     // Étape 7
     etape7:
     if (curpath[0] != '/'){
-        char* temp = calloc(MAX_STRING_LENGTH, sizeof(char));
+        char* temp = calloc(PATH_MAX, sizeof(char));
         if(!temp){free(curpath);return 1;}
         strcat(strcat(strcat(temp, cur), "/"), curpath);
         strcpy(curpath, temp);
@@ -131,7 +130,7 @@ int my_cd(char* cur, char** query){
         return 1;
     }
 
-    char* _curpath = calloc(MAX_STRING_LENGTH, sizeof(char));
+    char* _curpath = calloc(PATH_MAX, sizeof(char));
     if (realpath(curpath, _curpath)){
         if (setenv("OLDPWD", cur, 1) == 0 && setenv("PWD", _curpath, 1) == 0 && chdir(_curpath) == 0){
             free(curpath);
