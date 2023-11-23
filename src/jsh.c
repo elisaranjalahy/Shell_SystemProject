@@ -1,68 +1,101 @@
-#define _XOPEN_SOURCE 700 // C'est de la magie noire.
-
-#include "my_cd.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-
-#include <limits.h>
-#include <readline/readline.h>
-#include <readline/history.h>
-
-#include <sys/stat.h>
+#include "utils.h"
 
 char* mkprompt(job_list* jobs, char* cur_path){
 
-    char* prompt = calloc(MAX_STRING_LENGTH, sizeof(char));
-    char* njob = utos(jobs->length);
+    // Allocation de l'espace stockant le prompt
+    char* prompt = calloc(PATH_MAX, sizeof(char));
+
+    // Création de la première partie du prompt
+    // le nombre de jobs, en rouge et en gras
+    char* njob = utos(jobs->length);    // char* du nombre de jobs en cours
     strcat(strcat(strcat(prompt, "\001\033[31;1m\002["), njob), "]\001\033[36;22m\002");
     free(njob);
 
+    // Création de la deuxième partie du prompt
+    // le chemin actuel, eventuellement tronqué
+    // On veut une longueur d'au plus 28 afin de rajouter
+    // `$ ` à la fin sans dépasser 30 de longueur
     int l = my_strlen(prompt) + my_strlen(cur_path) - 28;
     if (l>0) {
+        // Si le chemin est trop long on le fait commencer
+        // par des points de suspension
         strcat(prompt, "...");
         strcat(prompt, cur_path + l + 3);
     } else {
         strcat(prompt, cur_path);
     }
 
+    // Finalisation du prompt
     return strcat(prompt, "\001\033[0m\002$ ");
 }
 
 int main(){
     job_list* jobs = new_job_list();
-    rl_outstream = stderr;
+    rl_outstream = stderr;  // Affichage du prompt sur la sortie erreur
 
-    int qlength;
-
-    // cur_path représente le chemain depuis home vers là ou l'utilisateur est.
-    char* cur_path = calloc(MAX_STRING_LENGTH, sizeof(char));
-    // last_path représente le chemin précédent.
-    char* last_path = calloc(MAX_STRING_LENGTH, sizeof(char));
-
-    if (realpath(".", cur_path) == NULL){exit(0);}
-    strcpy(last_path, cur_path);
+    int last_cmd_success = 0;
+    int argc;
 
     // Boucle lisant l'entrée utilisateur.
     for (;;){
-        char* prompt = mkprompt(jobs, cur_path);
+        char* prompt = mkprompt(jobs, getenv("PWD"));
         char* query = readline(prompt);
 
         free(prompt);
-        add_history(query);
 
-        // Façon temporaire de reconnaitre les commandes
-        qlength = strlen(query);
-
-        if (qlength > 1 && query[0] == 'c' && query[1] == 'd' && (qlength == 2 || query[2] == ' ')){
-            my_cd(cur_path, last_path, query);
+        if (!query){
+            // Ctrl+D ou problème d'allocation dans readline
+            exit(last_cmd_success);
         }
 
-        if (query){free(query);}
+        add_history(query);
+        char** argv = my_to_argv(query);
+        argc = argvlen(argv);
+        free(query);
+
+        // Récupération de la valeur des
+        // variables d'environnement
+        char* is_env = calloc(argc, sizeof(char));
+        char* k;
+        for (int i = 0; i<argc; i++){
+            if (argv[i][0] == '$'){
+                k = getenv(argv[i]+1);
+                if (k){
+                    argv[i] = k;
+                    is_env[i]++;
+                }
+            }
+        }
+
+        if (strcmp(argv[0], "cd") == 0){
+            last_cmd_success = my_cd(getenv("PWD"), argv + 1);
+        }else if(strcmp(argv[0], "pwd") == 0){
+            last_cmd_success = pwd(getenv("PWD"));
+        }else if(strcmp(argv[0], "exit")==0){
+            if(argv[1] == NULL){
+                exit(last_cmd_success);
+            }else {
+                exit(atoi(argv[1]));
+            }
+        }else if(strcmp(argv[0], "?") == 0){
+            if(last_cmd_success!=0){
+                //retourne 1 si la derniere commande exécutée etait un echec
+                write(1, "1\n",2);
+            }else{
+                // retourne 0 sinon
+                write(1,"0\n",2);
+            }
+        }else{
+            // Exécution d'une commande externe
+            last_cmd_success = execute_ext_cmd(argv);
+        }
+
+        for (int i=0; i<argc; i++){
+            if (!is_env[i]){free(argv[i]);}
+        }
+        free(argv);
+        free(is_env);
     }
 
-    free(cur_path);
-    free(last_path);
     return 0;
 }

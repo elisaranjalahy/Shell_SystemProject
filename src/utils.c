@@ -1,24 +1,8 @@
 #include "utils.h"
-#include <string.h>
-#include <stdlib.h>
-#include <unistd.h>
-
-#include <sys/stat.h>
-
 
 //////
 //          Misc
 //////
-
-unsigned int stou(char* str){
-    // string to unsigned int
-    int res = 0;
-
-    for (; str && (*str >= 48 && *str <= 57); str++) {
-        res = res * 10 + (*str - 48);
-    }
-    return res;
-}
 
 char* utos(unsigned int n){
     int decimals = (n == 0);
@@ -44,21 +28,25 @@ int my_strlen(const char* str){
     }
 }
 
-char* get_home_location(char* jsh_loc){
-    char* home_loc = calloc(MAX_STRING_LENGTH, sizeof(char));
-    if (home_loc == NULL){exit(0);}
+int argvlen(char** argv){
+    int i = -1;
+    while (argv[++i] != NULL);
+    return i;
+}
 
-    int j = 0;
-    for (int i = 1; jsh_loc[i] != '\0'; ++i) {
-        if (jsh_loc[i] == '/') {
-            if (j > 0) {
-                home_loc[j++] = '/';
-            }
-            home_loc[j++] = '.';
-            home_loc[j++] = '.';
-        }
+char** my_to_argv(char* query){
+    char** argv = calloc(strlen(query) + 1, sizeof(char*));
+
+    int i = 0;
+    char* arg = strtok(query, " ");
+
+    while (arg != NULL){
+        argv[i] = calloc(strlen(arg) + 1, sizeof(char));
+        strcpy(argv[i++], arg);
+        arg = strtok(NULL, " ");
     }
-    return home_loc;
+    for (;i<strlen(query) + 1; argv[i++] = NULL){}
+    return argv;
 }
 
 //////
@@ -72,6 +60,3 @@ job_list* new_job_list(){
     list->tail = NULL;
     return list;
 }
-
-// /home/test/jsh
-// ../..
