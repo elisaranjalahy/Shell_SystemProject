@@ -1,20 +1,8 @@
 #include "utils.h"
-#include "lib.h"
-
 
 //////
 //          Misc
 //////
-
-unsigned int stou(char* str){
-    // string to unsigned int
-    int res = 0;
-
-    for (; str && (*str >= 48 && *str <= 57); str++) {
-        res = res * 10 + (*str - 48);
-    }
-    return res;
-}
 
 char* utos(unsigned int n){
     int decimals = (n == 0);
@@ -72,6 +60,3 @@ job_list* new_job_list(){
     list->tail = NULL;
     return list;
 }
-
-// /home/test/jsh
-// ../..

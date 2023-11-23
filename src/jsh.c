@@ -1,12 +1,9 @@
-#define _XOPEN_SOURCE 700 // C'est de la magie noire.
-#include "lib.h"
 #include "utils.h"
-
 
 char* mkprompt(job_list* jobs, char* cur_path){
 
     // Allocation de l'espace stockant le prompt
-    char* prompt = calloc(MAX_STRING_LENGTH, sizeof(char));
+    char* prompt = calloc(PATH_MAX, sizeof(char));
 
     // Création de la première partie du prompt
     // le nombre de jobs, en rouge et en gras

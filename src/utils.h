@@ -1,17 +1,12 @@
-#define MAX_STRING_LENGTH 1 << 10
+#include "lib.h"
 
+#ifndef PATH_MAX
+    #define PATH_MAX 1 << 10
+#endif
 
-//////
-//
-//////
-
-/**
- * String to unsigned int
- *
- * @param str a pointer to the start of the string
- * @return the integer represented by the string
- */
-unsigned int stou(char* str);
+////
+//  Fonctions utiliaires
+////
 
 /**
  * Unsigned int to string
@@ -54,7 +49,7 @@ int argvlen(char** argv);
 typedef struct JobNode {
     int jobID;
     int pgid; // Process Group ID
-    char command[MAX_STRING_LENGTH];
+    char command[PATH_MAX];
     int state;
     int background;
     struct JobNode* next;
