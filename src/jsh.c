@@ -78,12 +78,11 @@ int main(){
                 exit(atoi(argv[1]));
             }
         }else if(strcmp(argv[0], "?") == 0){
-            if(last_cmd_success!=0){
-                //retourne 1 si la derniere commande exécutée etait un echec
-                write(1, "1\n",2);
-            }else{
-                // retourne 0 sinon
-                write(1,"0\n",2);
+            if (write(STDOUT_FILENO, utos(last_cmd_success), strlen(last_cmd_success)) > 0){
+                write(STDOUT_FILENO, "\n", 1);
+                last_cmd_success = 0;
+            } else {
+                last_cmd_success = 1;
             }
         }else{
             // Exécution d'une commande externe
