@@ -8,6 +8,7 @@ int my_cd(char* cur, char** query){
     int argc = argvlen(query);
 
     char* directory = calloc(PATH_MAX, sizeof(char));
+    if (!directory){return 1;}
 
     if (argc == 0){strcpy(directory, "~");}
     else {
@@ -48,6 +49,11 @@ int my_cd(char* cur, char** query){
     }
     // Initialisation de curpath utile pour les prochaines étapes.
     char* curpath = calloc(PATH_MAX, sizeof(char));
+    if (!curpath){
+        free(directory);
+        perror("calloc");
+        return 1;
+    }
 
     // Étape 3
     if (directory && directory[0] == '/'){
@@ -62,6 +68,13 @@ int my_cd(char* cur, char** query){
 
     // Étape 5
     char* CDPATH = calloc(PATH_MAX, sizeof(char));
+    if (!CDPATH){
+        free(directory);
+        free(curpath);
+        perror("calloc");
+        return 1;
+    }
+
     strcpy(CDPATH, cur);
 
     // Ajout du chemin actuel
@@ -76,7 +89,7 @@ int my_cd(char* cur, char** query){
 
     while (token != NULL) {
         char* np = calloc(PATH_MAX, sizeof(char));
-        if(!np){free(CDPATH);return 1;}
+        if(!np){free(CDPATH);free(curpath);free(directory);return 1;}
         strcpy(np, token);
 
         if (np[strlen(np)-1] != '/'){
@@ -110,7 +123,7 @@ int my_cd(char* cur, char** query){
     etape7:
     if (curpath[0] != '/'){
         char* temp = calloc(PATH_MAX, sizeof(char));
-        if(!temp){free(curpath);return 1;}
+        if(!temp){free(curpath);free(directory);return 1;}
         strcat(strcat(strcat(temp, cur), "/"), curpath);
         strcpy(curpath, temp);
         free(temp);
@@ -132,14 +145,14 @@ int my_cd(char* cur, char** query){
 
     char* _curpath = calloc(PATH_MAX, sizeof(char));
     if (realpath(curpath, _curpath)){
-        if (setenv("OLDPWD", cur, 1) == 0 && setenv("PWD", _curpath, 1) == 0 && chdir(_curpath) == 0){
+        if (chdir(_curpath) == 0 && setenv("OLDPWD", cur, 1) == 0 && setenv("PWD", _curpath, 1) == 0){
             free(curpath);
             free(_curpath);
             return 0;
         }
     }
 
-    free(_curpath);
+    if (_curpath){free(_curpath);free(curpath);return 1;}
     free(curpath);
     write(2, "cd: ", 4);
     write(2, directory, strlen(directory));
