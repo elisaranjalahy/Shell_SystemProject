@@ -49,10 +49,17 @@ int main(){
         }
 
         add_history(query);
-        
-	int empty_line = 1;
-	for(int i=0; i< strlen(query)q
-	char** argv = my_to_argv(query);
+
+	    int empty_line = 1;
+	    for(int i=0; i< strlen(query); i++){
+            if (query[i] != ' '){empty_line = 0;}
+        }
+
+        if (empty_line){
+            free(query);
+            continue;
+        }
+	    char** argv = my_to_argv(query);
         argc = argvlen(argv);
         free(query);
 
