@@ -49,7 +49,10 @@ int main(){
         }
 
         add_history(query);
-        char** argv = my_to_argv(query);
+        
+	int empty_line = 1;
+	for(int i=0; i< strlen(query)q
+	char** argv = my_to_argv(query);
         argc = argvlen(argv);
         free(query);
 
@@ -78,7 +81,7 @@ int main(){
                 exit(atoi(argv[1]));
             }
         }else if(strcmp(argv[0], "?") == 0){
-            if (write(STDOUT_FILENO, utos(last_cmd_success), strlen(last_cmd_success)) > 0){
+            if (write(STDOUT_FILENO, utos(last_cmd_success), strlen(utos(last_cmd_success))) > 0){
                 write(STDOUT_FILENO, "\n", 1);
                 last_cmd_success = 0;
             } else {

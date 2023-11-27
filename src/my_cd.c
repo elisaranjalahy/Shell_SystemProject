@@ -41,8 +41,8 @@ int my_cd(char* cur, char** query){
         // Go to previous directory
         char* curpath = getenv("OLDPWD");
         if (curpath && setenv("OLDPWD", cur, 1) == 0 && setenv("PWD", curpath, 1) == 0 && chdir(curpath) == 0){
-            write(1, curpath, strlen(curpath));
-            write(1, "\n", 1);
+            //write(1, curpath, strlen(curpath));
+            //write(1, "\n", 1);
             return 0;
         }
         return 1;
