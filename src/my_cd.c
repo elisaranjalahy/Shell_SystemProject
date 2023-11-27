@@ -17,6 +17,7 @@ int my_cd(char* cur, char** query){
             has_opt++;
         }
         if (argc > has_opt + 1){
+            free(directory);
             write(2,"cd: too many arguments", strlen("cd: too many arguments"));
             return 1;
         }
