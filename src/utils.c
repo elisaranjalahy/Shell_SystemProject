@@ -9,7 +9,7 @@ char* utos(unsigned int n){
     for(int m=n; m > 0; m /= 10){decimals++;}
     // unsigned int to string
     char* res = malloc(sizeof(char)*(decimals+1));
-    if (res == NULL){exit(1);}
+    if (res == NULL){return NULL;}
 
     int i = decimals;
     for(; n > 0 || i > 0; n /= 10){
@@ -35,18 +35,25 @@ int argvlen(char** argv){
 }
 
 char** my_to_argv(char* query){
+    int i = 0;
     char** argv = calloc(strlen(query) + 1, sizeof(char*));
 
-    int i = 0;
     char* arg = strtok(query, " ");
 
     while (arg != NULL){
         argv[i] = calloc(strlen(arg) + 1, sizeof(char));
+        if (argv[i] == NULL){goto error;}
         strcpy(argv[i++], arg);
         arg = strtok(NULL, " ");
     }
-    for (;i<strlen(query) + 1; argv[i++] = NULL){}
+    for (;i<strlen(query) + 1; argv[i++] = NULL);
     return argv;
+
+    error:
+    for(; i>0; free(argv[--i]));
+    free(argv);
+    perror("my_to_argv");
+    return NULL;
 }
 
 //////
