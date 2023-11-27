@@ -137,13 +137,15 @@ int my_cd(char* cur, char** query){
     // Étape 10
     if (found_file){
         free(curpath);
-        write(2, "cd: ", 4);
+        write(2, "bash: cd: ", 4);
         write(2, directory, strlen(directory));
-        write(2, " : Not a directory\n", strlen(" : Not a directory\n"));
+        write(2, ": N'est pas un dossier\n", strlen(": N'est pas un dossier\n"));
         return 1;
     }
 
     char* _curpath = calloc(PATH_MAX, sizeof(char));
+    if (!_curpath){free(curpath);return 1;}
+
     if (realpath(curpath, _curpath)){
         if (chdir(_curpath) == 0 && setenv("OLDPWD", cur, 1) == 0 && setenv("PWD", _curpath, 1) == 0){
             free(curpath);
@@ -152,10 +154,9 @@ int my_cd(char* cur, char** query){
         }
     }
 
-    if (_curpath){free(_curpath);free(curpath);return 1;}
     free(curpath);
-    write(2, "cd: ", 4);
+    write(2, "bash: cd: ", 4);
     write(2, directory, strlen(directory));
-    write(2, " : No such file or directory\n", strlen(" : No such file or directory\n"));
+    write(2, ": Aucun fichier ou dossier de ce type\n", strlen(": Aucun fichier ou dossier de ce type\n"));
     return 1;
 }
