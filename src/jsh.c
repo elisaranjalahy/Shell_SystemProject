@@ -88,12 +88,14 @@ int main(){
                 exit(atoi(argv[1]));
             }
         }else if(strcmp(argv[0], "?") == 0){
-            if (write(STDOUT_FILENO, utos(last_cmd_success), strlen(utos(last_cmd_success))) > 0){
+            char* lcs = utos(last_cmd_success);
+            if (write(STDOUT_FILENO, lcs, strlen(lcs)) > 0){
                 write(STDOUT_FILENO, "\n", 1);
                 last_cmd_success = 0;
             } else {
                 last_cmd_success = 1;
             }
+            free(lcs);
         }else{
             // Exécution d'une commande externe
             last_cmd_success = execute_ext_cmd(argv);

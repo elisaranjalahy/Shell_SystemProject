@@ -31,8 +31,9 @@ int my_cd(char* cur, char** query){
     // Étapes 1-2
     if (strcmp(directory, "~") == 0){
         // Pas de requête, on tente de rejoindre le home.
+        free(directory);
         char* curpath = getenv("HOME");
-        if (curpath && setenv("OLDPWD", cur, 1) == 0 && setenv("PWD", curpath, 1) == 0 && chdir(curpath) == 0){
+        if (curpath && chdir(curpath) == 0 && setenv("OLDPWD", cur, 1) == 0 && setenv("PWD", curpath, 1) == 0){
             return 0;
         }
         return 1;
@@ -40,6 +41,7 @@ int my_cd(char* cur, char** query){
 
     if (strcmp(directory, "-") == 0){
         // Go to previous directory
+        free(directory);
         char* curpath = getenv("OLDPWD");
         if (curpath && setenv("OLDPWD", cur, 1) == 0 && setenv("PWD", curpath, 1) == 0 && chdir(curpath) == 0){
             //write(1, curpath, strlen(curpath));
@@ -59,6 +61,7 @@ int my_cd(char* cur, char** query){
     // Étape 3
     if (directory && directory[0] == '/'){
         strcpy(curpath, directory);
+        free(directory);
         goto etape7;
     }
 
@@ -119,12 +122,13 @@ int my_cd(char* cur, char** query){
     // Étape 6
     etape6:
     strcpy(curpath, directory);
+    free(directory);
 
     // Étape 7
     etape7:
     if (curpath[0] != '/'){
         char* temp = calloc(PATH_MAX, sizeof(char));
-        if(!temp){free(curpath);free(directory);return 1;}
+        if(!temp){free(curpath);;return 1;}
         strcat(strcat(strcat(temp, cur), "/"), curpath);
         strcpy(curpath, temp);
         free(temp);
@@ -137,15 +141,15 @@ int my_cd(char* cur, char** query){
 
     // Étape 10
     if (found_file){
-        free(curpath);
         write(2, "bash: cd: ", 4);
-        write(2, directory, strlen(directory));
+        write(2, curpath, strlen(curpath));
         write(2, ": N'est pas un dossier\n", strlen(": N'est pas un dossier\n"));
+        free(curpath);
         return 1;
     }
 
     char* _curpath = calloc(PATH_MAX, sizeof(char));
-    if (!_curpath){free(curpath);return 1;}
+    if (!_curpath){free(curpath);free(directory);return 1;}
 
     if (realpath(curpath, _curpath)){
         if (chdir(_curpath) == 0 && setenv("OLDPWD", cur, 1) == 0 && setenv("PWD", _curpath, 1) == 0){
@@ -155,9 +159,9 @@ int my_cd(char* cur, char** query){
         }
     }
 
-    free(curpath);
     write(2, "bash: cd: ", 4);
-    write(2, directory, strlen(directory));
+    write(2, curpath, strlen(curpath));
     write(2, ": Aucun fichier ou dossier de ce type\n", strlen(": Aucun fichier ou dossier de ce type\n"));
+    free(curpath);
     return 1;
 }
