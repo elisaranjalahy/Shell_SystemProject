@@ -8,6 +8,7 @@ int my_cd(char* cur, char** query){
     int argc = argvlen(query);
 
     char* directory = calloc(PATH_MAX, sizeof(char));
+    if (!directory){return 1;}
 
     if (argc == 0){strcpy(directory, "~");}
     else {
@@ -16,6 +17,7 @@ int my_cd(char* cur, char** query){
             has_opt++;
         }
         if (argc > has_opt + 1){
+            free(directory);
             write(2,"cd: too many arguments", strlen("cd: too many arguments"));
             return 1;
         }
@@ -29,8 +31,9 @@ int my_cd(char* cur, char** query){
     // Étapes 1-2
     if (strcmp(directory, "~") == 0){
         // Pas de requête, on tente de rejoindre le home.
+        free(directory);
         char* curpath = getenv("HOME");
-        if (curpath && setenv("OLDPWD", cur, 1) == 0 && setenv("PWD", curpath, 1) == 0 && chdir(curpath) == 0){
+        if (curpath && chdir(curpath) == 0 && setenv("OLDPWD", cur, 1) == 0 && setenv("PWD", curpath, 1) == 0){
             return 0;
         }
         return 1;
@@ -38,20 +41,27 @@ int my_cd(char* cur, char** query){
 
     if (strcmp(directory, "-") == 0){
         // Go to previous directory
+        free(directory);
         char* curpath = getenv("OLDPWD");
         if (curpath && setenv("OLDPWD", cur, 1) == 0 && setenv("PWD", curpath, 1) == 0 && chdir(curpath) == 0){
-            write(1, curpath, strlen(curpath));
-            write(1, "\n", 1);
+            //write(1, curpath, strlen(curpath));
+            //write(1, "\n", 1);
             return 0;
         }
         return 1;
     }
     // Initialisation de curpath utile pour les prochaines étapes.
     char* curpath = calloc(PATH_MAX, sizeof(char));
+    if (!curpath){
+        free(directory);
+        perror("calloc");
+        return 1;
+    }
 
     // Étape 3
     if (directory && directory[0] == '/'){
         strcpy(curpath, directory);
+        free(directory);
         goto etape7;
     }
 
@@ -62,6 +72,13 @@ int my_cd(char* cur, char** query){
 
     // Étape 5
     char* CDPATH = calloc(PATH_MAX, sizeof(char));
+    if (!CDPATH){
+        free(directory);
+        free(curpath);
+        perror("calloc");
+        return 1;
+    }
+
     strcpy(CDPATH, cur);
 
     // Ajout du chemin actuel
@@ -76,7 +93,7 @@ int my_cd(char* cur, char** query){
 
     while (token != NULL) {
         char* np = calloc(PATH_MAX, sizeof(char));
-        if(!np){free(CDPATH);return 1;}
+        if(!np){free(CDPATH);free(curpath);free(directory);return 1;}
         strcpy(np, token);
 
         if (np[strlen(np)-1] != '/'){
@@ -105,12 +122,13 @@ int my_cd(char* cur, char** query){
     // Étape 6
     etape6:
     strcpy(curpath, directory);
+    free(directory);
 
     // Étape 7
     etape7:
     if (curpath[0] != '/'){
         char* temp = calloc(PATH_MAX, sizeof(char));
-        if(!temp){free(curpath);return 1;}
+        if(!temp){free(curpath);;return 1;}
         strcat(strcat(strcat(temp, cur), "/"), curpath);
         strcpy(curpath, temp);
         free(temp);
@@ -123,26 +141,27 @@ int my_cd(char* cur, char** query){
 
     // Étape 10
     if (found_file){
+        write(2, "bash: cd: ", 4);
+        write(2, curpath, strlen(curpath));
+        write(2, ": N'est pas un dossier\n", strlen(": N'est pas un dossier\n"));
         free(curpath);
-        write(2, "cd: ", 4);
-        write(2, directory, strlen(directory));
-        write(2, " : Not a directory\n", strlen(" : Not a directory\n"));
         return 1;
     }
 
     char* _curpath = calloc(PATH_MAX, sizeof(char));
+    if (!_curpath){free(curpath);free(directory);return 1;}
+
     if (realpath(curpath, _curpath)){
-        if (setenv("OLDPWD", cur, 1) == 0 && setenv("PWD", _curpath, 1) == 0 && chdir(_curpath) == 0){
+        if (chdir(_curpath) == 0 && setenv("OLDPWD", cur, 1) == 0 && setenv("PWD", _curpath, 1) == 0){
             free(curpath);
             free(_curpath);
             return 0;
         }
     }
 
-    free(_curpath);
+    write(2, "bash: cd: ", 4);
+    write(2, curpath, strlen(curpath));
+    write(2, ": Aucun fichier ou dossier de ce type\n", strlen(": Aucun fichier ou dossier de ce type\n"));
     free(curpath);
-    write(2, "cd: ", 4);
-    write(2, directory, strlen(directory));
-    write(2, " : No such file or directory\n", strlen(" : No such file or directory\n"));
     return 1;
 }
