@@ -10,6 +10,11 @@
 #include <sys/wait.h>
 
 /**
+ * Ce fichier permet d'acceder aux signatures de certaines commandes ou encore de reunir toutes les bibliotheques
+ * utilisées pour n'avoir qu'un seul "include" à écrire dans les autres fichiers
+ **/
+
+/**
 * Affiche le chemin absolue du répertoire de travail courant
  * @param cur the current path
  **/
@@ -29,3 +34,5 @@ int my_cd(char* cur, char** directory);
  * @return 0 si cette commande s'est exécutée correctement, sinon une autre valeur indiquant une erreur
  */
 int execute_ext_cmd(char **args);
+
+

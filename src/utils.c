@@ -1,5 +1,6 @@
 #include "utils.h"
 
+
 //////
 //          Misc
 //////
@@ -67,3 +68,51 @@ job_list* new_job_list(){
     list->tail = NULL;
     return list;
 }
+
+job_node* new_job_node(char **query){
+    job_node* newJob = malloc(sizeof(job_node));
+   if (newJob == NULL) {
+        fprintf(stderr, "Erreur d'allocation mémoire pour newJob\n");
+        return NULL;
+    }
+
+    newJob->pgid = getgid(); //prend le pid du groupe de process appelant donc des qu'on fait un fork, apres appele new_job node pour s'ajouter lui meme à la lsit des job ?
+
+    strcpy(newJob->command, query[0]);
+    if (query[1] != NULL) {
+        strncat(newJob->command, " ", PATH_MAX - strlen(newJob->command) - 1);
+        strncat(newJob->command, query[1], PATH_MAX - strlen(newJob->command) - 1);
+    }
+
+    //etat à definir
+    //background à definir
+    newJob->next=NULL;
+    return newJob;
+}
+
+
+int affiche_jobs(job_list* jobs){
+    job_node* acc = jobs->head;//pour parcourir la liste sans changer le vrai pointeur head
+    int jobID=0;
+    while (acc != NULL) {
+
+        printf("[%d] %d (état) %s\n", jobID, getgid(), acc->command);
+        acc = acc->next;
+        ++jobID;
+    }
+}
+
+void add_job_to_list(job_list* jobList, job_node* jobs){
+    if(jobs !=NULL){
+        if (jobList->head ==NULL){
+            jobList->head=jobs;
+            jobList->tail=jobs;
+        }else{
+                jobList->tail->next=jobs;
+                jobList->tail=jobs;
+            
+        }
+    }
+    
+}
+

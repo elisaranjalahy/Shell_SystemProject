@@ -37,7 +37,7 @@ int main(){
     int argc;
 
     // Boucle lisant l'entrée utilisateur.
-    for (;;){
+   for (;;){
         char* prompt = mkprompt(jobs, getenv("PWD"));
         char* query = readline(prompt);
 
@@ -96,8 +96,13 @@ int main(){
                 last_cmd_success = 1;
             }
             free(lcs);
+        }else if(strcmp(argv[0],"jobs")==0){ //jobs sans argument
+            affiche_jobs(jobs);
+
         }else{
             // Exécution d'une commande externe
+            job_node* newJob=new_job_node(argv);
+            add_job_to_list(jobs,newJob);
             last_cmd_success = execute_ext_cmd(argv);
         }
 
@@ -108,5 +113,6 @@ int main(){
         free(is_env);
     }
 
+    
     return 0;
 }

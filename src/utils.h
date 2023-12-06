@@ -1,7 +1,7 @@
 #include "lib.h"
 
 #ifndef PATH_MAX
-    #define PATH_MAX 1 << 10
+    #define PATH_MAX (1 << 10)
 #endif
 
 ////
@@ -47,10 +47,9 @@ int argvlen(char** argv);
 //////
 
 typedef struct JobNode {
-    int jobID;
     int pgid; // Process Group ID
     char command[PATH_MAX];
-    int state;
+    char state[PATH_MAX];
     int background;
     struct JobNode* next;
 } job_node;
@@ -61,5 +60,9 @@ typedef struct JobList {
     job_node* tail;
 } job_list;
 
+
+//à commenter
 job_node* new_job_node();
 job_list* new_job_list();
+int affiche_jobs(job_list* jobs);
+void add_job_to_list(job_list* jobList, job_node* jobs);
