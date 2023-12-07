@@ -60,8 +60,9 @@ int main(){
             continue;
         }
 	    char** argv = my_to_argv(query);
-        argc = argvlen(argv);
         free(query);
+
+        argc = argvlen(argv);
 
         // Récupération de la valeur des
         // variables d'environnement
@@ -76,6 +77,8 @@ int main(){
                 }
             }
         }
+
+
 
         if (strcmp(argv[0], "cd") == 0){
             last_cmd_success = my_cd(getenv("PWD"), argv + 1);

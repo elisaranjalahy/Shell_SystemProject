@@ -8,6 +8,8 @@
 #include <readline/history.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
+#include <fcntl.h>
+
 
 /**
  * Ce fichier permet d'acceder aux signatures de certaines commandes ou encore de reunir toutes les bibliotheques

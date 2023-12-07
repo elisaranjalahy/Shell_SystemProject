@@ -1,11 +1,11 @@
-#include "lib.h"
+#include "utils.h"
 
 int execute_ext_cmd(char **query) {
 
     pid_t pid = fork();
-
     if (pid == 0) {
         // Processus fils
+        redirections(query);
 	    execvp(query[0],query);
         perror("Erreur lors de l'exécution de la commande");//si execvp s'est bien déroulé bien, on atteint pas ce perror
         exit(EXIT_FAILURE);

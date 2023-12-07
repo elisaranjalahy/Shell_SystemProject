@@ -100,6 +100,7 @@ int affiche_jobs(job_list* jobs){
         acc = acc->next;
         ++jobID;
     }
+    return 0;
 }
 
 void add_job_to_list(job_list* jobList, job_node* jobs){
@@ -110,9 +111,65 @@ void add_job_to_list(job_list* jobList, job_node* jobs){
         }else{
                 jobList->tail->next=jobs;
                 jobList->tail=jobs;
-            
         }
     }
-    
 }
 
+//////
+//          Redirection
+//////
+
+void mkrdr(int new_fd, const char* filename, int flags, mode_t mode){
+    int fd;
+    if ((fd = open(filename, flags, mode)) < 0){
+        fprintf(stderr, "Erreur : Une erreur s'est produite lors de l'ouverture du fichier\n");
+        exit(0);
+    }
+    if (dup2(fd, new_fd) != new_fd){
+        fprintf(stderr, "Erreur : Une erreur a eu lieu dans la redirection de la sortie standard.\n");
+        exit(0);
+    }
+    close(fd);
+}
+
+int mkflags(char* rdr){
+    if (rdr[0] == '2'){return mkflags(rdr+1);}
+    if (rdr[0] == '>'){
+        int flags = O_WRONLY | O_CREAT;
+        if (rdr[1] == '\0'){return flags | O_EXCL;}
+        else if (rdr[1] == '>' && rdr[2] == '\0'){return flags | O_APPEND;}
+        else if (rdr[1] == '|' && rdr[2] == '\0'){return flags | O_TRUNC}
+    }
+    return 0;
+}
+
+void redirections(char** argv){
+    int incr = 1;
+    for (int i = 0; i < argvlen(argv) - 1; i += incr){
+        incr = 1;
+
+        if (argv[i][0] == '>'){
+            int flags = mkflags(argv[i]);
+            if (!flags){continue;}
+
+            mkrdr(STDOUT_FILENO, argv[i+1], flags, S_IRWXU);
+
+            incr = 0;
+        } else if (argv[i][0] == 2){
+            int flags = mkflags(argv[i]);
+            if (!flags){continue;}
+
+            mkrdr(2, argv[i+1], flags, S_IRWXU);
+
+            incr = 0;
+        }
+
+        if (incr == 0){
+            int len = argvlen(argv);
+            for(int k = i; k < len - 2; k++){
+                argv[k] = argv[k+2];
+            }
+            argv[len-1] = NULL; argv[len-2] = NULL;
+        }
+    }
+}
