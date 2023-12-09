@@ -138,7 +138,7 @@ int mkflags(char* rdr){
         int flags = O_WRONLY | O_CREAT;
         if (rdr[1] == '\0'){return flags | O_EXCL;}
         else if (rdr[1] == '>' && rdr[2] == '\0'){return flags | O_APPEND;}
-        else if (rdr[1] == '|' && rdr[2] == '\0'){return flags | O_TRUNC}
+        else if (rdr[1] == '|' && rdr[2] == '\0'){return flags | O_TRUNC;}
     }
     return 0;
 }
