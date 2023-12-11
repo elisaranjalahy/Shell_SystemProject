@@ -121,12 +121,12 @@ void add_job_to_list(job_list* jobList, job_node* jobs){
 void mkrdr(int new_fd, const char* filename, int flags, mode_t mode){
     int fd;
     if ((fd = open(filename, flags, mode)) < 0){
-        fprintf(stderr, "Erreur : Une erreur s'est produite lors de l'ouverture du fichier\n");
-        exit(0);
+        perror("open");
+        exit(1);
     }
     if (dup2(fd, new_fd) != new_fd){
-        fprintf(stderr, "Erreur : Une erreur a eu lieu dans la redirection de la sortie standard.\n");
-        exit(0);
+        perror("dup2");
+        exit(1);
     }
     close(fd);
 }
@@ -163,11 +163,11 @@ void redirections(char** argv){
             int fd;
             if ((fd = open(argv[i+1], O_RDONLY)) < 0){
                 perror("open");
-                exit(0);
+                exit(1);
             }
             if (dup2(fd, STDIN_FILENO) != STDIN_FILENO){
                 perror("dup2");
-                exit(0);
+                exit(1);
             }
             close(fd);
             incr = 0;
