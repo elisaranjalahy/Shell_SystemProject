@@ -76,8 +76,7 @@ job_node* new_job_node(char **query,pid_t pid){
         return NULL;
     }
 
-    newJob->pid = pid; //prend le pid du groupe de process appelant donc des qu'on fait un fork, apres appele new_job node pour s'ajouter lui meme à la lsit des job ?
-
+    newJob->pid = pid;
     strcpy(newJob->command, query[0]);
     if (query[1] != NULL) {
         strncat(newJob->command, " ", PATH_MAX - strlen(newJob->command) - 1);

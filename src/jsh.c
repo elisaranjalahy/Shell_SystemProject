@@ -115,7 +115,7 @@ int main(){
         }else if(strcmp(argv[argc-1],"&")==0){
             argv[argc-1]=NULL;
             command_results tab = execute_ext_cmd(argv);
-		    job_node* newJob=new_job_node(argv,tab.gid);
+		    job_node* newJob=new_job_node(argv,tab.pid);
             add_job_to_list(jobs,newJob);
 		    last_cmd_success = tab.status;
 

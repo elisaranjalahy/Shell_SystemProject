@@ -2,7 +2,7 @@
 
 command_results execute_ext_cmd(char **query) {
 
-    command_results tab;
+    command_results tab; //tab[0 contient la valeur de succes de l'appel, tab[1] contient le pid
 
     pid_t pid = fork();
     if (pid == 0) {
@@ -14,7 +14,6 @@ command_results execute_ext_cmd(char **query) {
     } else if (pid < 0) {
         perror("Erreur lors de la création du processus fils");
         tab.status = -1; // indique une erreur
-        tab.gid =-1; //git mis aussi à -1 par choix
     } else {
         int st; //info sur l'état de sortie du processus pid
         waitpid(pid, &st, 0);
@@ -22,12 +21,10 @@ command_results execute_ext_cmd(char **query) {
         if (WIFEXITED(st)) {
             // vraie si la commande externe s'est terminée correctement
             tab.status = WEXITSTATUS(st); // et renvoie le code de sortie du processus
-            tab.gid =pid;
             return tab;
         } else {
             // La commande ne s'est pas terminée normalement
             tab.status = -1; // indique une erreur
-            tab.gid =-1; 
             return tab;
         }
     }
