@@ -69,14 +69,14 @@ job_list* new_job_list(){
     return list;
 }
 
-job_node* new_job_node(char **query){
+job_node* new_job_node(char **query,pid_t pid){
     job_node* newJob = malloc(sizeof(job_node));
    if (newJob == NULL) {
         fprintf(stderr, "Erreur d'allocation mémoire pour newJob\n");
         return NULL;
     }
 
-    newJob->pgid = getgid(); //prend le pid du groupe de process appelant donc des qu'on fait un fork, apres appele new_job node pour s'ajouter lui meme à la lsit des job ?
+    newJob->pid = pid; //prend le pid du groupe de process appelant donc des qu'on fait un fork, apres appele new_job node pour s'ajouter lui meme à la lsit des job ?
 
     strcpy(newJob->command, query[0]);
     if (query[1] != NULL) {
@@ -95,7 +95,7 @@ int affiche_jobs(job_list* jobs){
     int jobID=0;
     while (acc != NULL) {
 
-        printf("[%d] %d (état) %s\n", jobID, getgid(), acc->command);
+        printf("[%d] %d (état) %s\n", jobID, acc->pid, acc->command);
         acc = acc->next;
         ++jobID;
     }

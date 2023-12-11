@@ -9,6 +9,11 @@
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <fcntl.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
+#include <stdio.h>
 
 
 /**
@@ -30,11 +35,8 @@
  */
 int my_cd(char* cur, char** directory);
 
-/**
- * Permet l'execution des commande externe par jsh
- * @param args prend la commande externe et ses arguments/options donnés au shell
- * @return 0 si cette commande s'est exécutée correctement, sinon une autre valeur indiquant une erreur
- */
-int execute_ext_cmd(char **args);
+
+
+
 
 
