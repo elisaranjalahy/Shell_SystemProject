@@ -102,12 +102,17 @@ int main(){
         }else if(strcmp(argv[0],"jobs")==0){ //jobs sans argument
             affiche_jobs(jobs);
 
-        }else{
-            // Exécution d'une commande externe
-            job_node* newJob=new_job_node(argv);
-            add_job_to_list(jobs,newJob);
+        }else if(strcmp(argv[argc-1],"&")==0){
+		// Exécution d'une commande externe a l'arrière-plan
+		job_node* newJob=new_job_node(argv);
+            	add_job_to_list(jobs,newJob);
+		argv[argc-1]=NULL;
+		last_cmd_success=execute_ext_cmd(argv);
+	}else{
+            // Exécution d'une commande externe a l'avant-plan
             last_cmd_success = execute_ext_cmd(argv);
-        }
+       	    }
+
 
         for (int i=0; i<argc; i++){
             if (!is_env[i]){free(argv[i]);}
