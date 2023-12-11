@@ -152,15 +152,26 @@ void redirections(char** argv){
             if (!flags){continue;}
 
             mkrdr(STDOUT_FILENO, argv[i+1], flags, S_IRWXU);
-
             incr = 0;
         } else if (argv[i][0] == 2){
             int flags = mkflags(argv[i]);
             if (!flags){continue;}
 
             mkrdr(2, argv[i+1], flags, S_IRWXU);
-
             incr = 0;
+        } else if (argv[i][0] == '<' && argv[i][1] == '\0'){
+            int fd;
+            if ((fd = open(argv[i+1], O_RDONLY)) < 0){
+                perror("open");
+                exit(0);
+            }
+            if (dup2(fd, STDIN_FILENO) != STDIN_FILENO){
+                perror("dup2");
+                exit(0);
+            }
+            close(fd);
+            incr = 0;
+
         }
 
         if (incr == 0){
