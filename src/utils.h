@@ -50,7 +50,6 @@ typedef struct JobNode {
     int pgid; // Process Group ID
     char command[PATH_MAX];
     char state[PATH_MAX];
-    int background;
     struct JobNode* next;
 } job_node;
 

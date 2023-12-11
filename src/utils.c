@@ -85,7 +85,6 @@ job_node* new_job_node(char **query){
     }
 
     //etat à definir
-    //background à definir
     newJob->next=NULL;
     return newJob;
 }
