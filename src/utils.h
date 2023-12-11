@@ -87,6 +87,11 @@ int affiche_jobs(job_list* jobs);
 void add_job_to_list(job_list* jobList, job_node* jobs);
 
 
+//////
+//          Redirections
+//////
+
+
 //à commenter
 void mkrdr(int new_fd, const char* filename, int flags, mode_t mode);
 int mkflags(char* rdr);
