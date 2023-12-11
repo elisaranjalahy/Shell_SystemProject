@@ -78,18 +78,25 @@ int main(){
             }
         }
 
+//Identification des commandes entrée dans le terminal
 
-
+    //cd
         if (strcmp(argv[0], "cd") == 0){
             last_cmd_success = my_cd(getenv("PWD"), argv + 1);
+
+    //ls
         }else if(strcmp(argv[0], "pwd") == 0){
             last_cmd_success = pwd(getenv("PWD"));
+
+    //exit
         }else if(strcmp(argv[0], "exit")==0){
             if(argv[1] == NULL){
                 exit(last_cmd_success);
             }else {
                 exit(atoi(argv[1]));
             }
+
+    //?
         }else if(strcmp(argv[0], "?") == 0){
             char* lcs = utos(last_cmd_success);
             if (write(STDOUT_FILENO, lcs, strlen(lcs)) > 0){
@@ -99,19 +106,22 @@ int main(){
                 last_cmd_success = 1;
             }
             free(lcs);
+
+    //jobs
         }else if(strcmp(argv[0],"jobs")==0){ //jobs sans argument
             affiche_jobs(jobs);
 
+    //& : Exécution d'une commande externe a l'arrière-plan
         }else if(strcmp(argv[argc-1],"&")==0){
-		// Exécution d'une commande externe a l'arrière-plan
-		job_node* newJob=new_job_node(argv);
+		    job_node* newJob=new_job_node(argv);
             	add_job_to_list(jobs,newJob);
-		argv[argc-1]=NULL;
-		last_cmd_success=execute_ext_cmd(argv);
-	}else{
-            // Exécution d'une commande externe a l'avant-plan
+		    argv[argc-1]=NULL;
+		    last_cmd_success=execute_ext_cmd(argv);
+
+    // Exécution d'une commande externe a l'avant-plan
+	    }else{
             last_cmd_success = execute_ext_cmd(argv);
-       	    }
+       	}
 
 
         for (int i=0; i<argc; i++){

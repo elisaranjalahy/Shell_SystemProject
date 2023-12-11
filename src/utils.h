@@ -61,12 +61,34 @@ typedef struct JobList {
 } job_list;
 
 
-//à commenter
+/**
+ * initialise et renvoie un nouveau job à chaque commande
+ * externe appelée en arrière-plan
+ * definit son champ @param pgid
+ * récupere la commande appelée pour definir @param command
+ * @param state definit son état actuel (running, done...)
+ * definit @param next à NULL
+ **/
 job_node* new_job_node();
+
+/**
+ * Initialise une nouvelle liste de jobs
+ **/
 job_list* new_job_list();
+
+/**
+ * affiche la liste @param jobs de jobs donnée en argument
+ **/
 int affiche_jobs(job_list* jobs);
+
+/**
+ * ajoute le le nouveau jobs @param jobs
+ * à la liste de jobs @param jobList
+ **/
 void add_job_to_list(job_list* jobList, job_node* jobs);
 
+
+//à commenter
 void mkrdr(int new_fd, const char* filename, int flags, mode_t mode);
 int mkflags(char* rdr);
 void redirections(char** argv);
