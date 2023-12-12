@@ -14,6 +14,8 @@ command_results execute_ext_cmd(char **query) {
     } else if (pid < 0) {
         perror("Erreur lors de la création du processus fils");
         tab.status = -1; // indique une erreur
+	return tab;
+
     } else {
         int st; //info sur l'état de sortie du processus pid
         waitpid(pid, &st, 0);
@@ -28,4 +30,5 @@ command_results execute_ext_cmd(char **query) {
             return tab;
         }
     }
+
 }

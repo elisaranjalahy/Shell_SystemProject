@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -pedantic -std=c99 -lreadline -g
+CFLAGS = -Wall -pedantic -std=c99 
 
 SRC_DIR = src
 BUILD_DIR = build
@@ -13,11 +13,11 @@ TARGET = jsh
 all: $(TARGET)
 
 $(TARGET): $(OBJ_FILES)
-	$(CC) $(CFLAGS) $^ -o $@
+	$(CC) $(CFLAGS) $^ -o $@ -lreadline -g
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(BUILD_DIR)
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@ -lreadline -g
 
 clean:
 	rm -rf $(BUILD_DIR) $(TARGET)
