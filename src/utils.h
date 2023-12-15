@@ -54,6 +54,9 @@ typedef struct CommandResults {
  * @return 0 si cette commande s'est exécutée correctement, sinon une autre valeur indiquant une erreur
  */
 command_results execute_ext_cmd(char **args);
+/**
+ *Permet l'execution des commandes externe en arrière plan par jsh
+*/
 command_results execute_ext_cmd_ap(char **args);
 
 
