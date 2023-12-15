@@ -32,3 +32,55 @@ command_results execute_ext_cmd(char **query) {
     }
 
 }
+
+command_results execute_ext_cmd_ap(char **query) {
+    command_results tab; //tab[0 contient la valeur de succes de l'appel, tab[1] contient le pid
+    tab.status=0;
+    pid_t pid=fork();
+   if (pid == -1) {
+        perror("fork");
+        tab.status=-1;
+        return tab;
+    } else if (pid == 0) {
+        execvp(query[0],query);
+        perror("Erreur lors de l'exécution de la commande");
+        tab.status=-1;
+        return tab;
+    } else {
+        
+        setsid();
+        int status;
+        pid_t result = waitpid(pid, &status, WNOHANG);
+
+        if (result == -1) {
+            perror("waitpid");
+            tab.status=-1;
+            return tab;
+        } else if (result == 0) {
+            tab.state="Running";
+            return tab;
+        } else {
+            if (WIFEXITED(status)) {
+                tab.state="Done";
+                return tab;
+            } else if (WIFSIGNALED(status)) {
+                tab.state="Killed";
+                return tab;
+            } else if (WIFSTOPPED(status)) {
+                tab.state="Stopped";
+                return tab;
+            }
+            int stopsig = WSTOPSIG(status);
+            if (stopsig == SIGCONT) {
+                tab.state="Running";
+                return tab;
+            } else {
+                tab.state="Detached";
+                return tab;
+            }
+        }
+        return tab;
+        
+    }
+
+}

@@ -45,6 +45,7 @@ int argvlen(char** argv);
 typedef struct CommandResults {
     gid_t gid; //stock l'id de groupe 
     int status; // 0 si réussi, -1 sinon
+    char* state;
 } command_results;
 
 /**
@@ -53,6 +54,7 @@ typedef struct CommandResults {
  * @return 0 si cette commande s'est exécutée correctement, sinon une autre valeur indiquant une erreur
  */
 command_results execute_ext_cmd(char **args);
+command_results execute_ext_cmd_ap(char **args);
 
 
 
@@ -63,7 +65,7 @@ command_results execute_ext_cmd(char **args);
 typedef struct JobNode {
     int pid; // Process Group ID
     char command[PATH_MAX];
-    char state[PATH_MAX];
+    char* state;
     struct JobNode* next;
 } job_node;
 
@@ -82,7 +84,7 @@ typedef struct JobList {
  * @param state definit son état actuel (running, done...)
  * definit @param next à NULL
  **/
-job_node* new_job_node(char **query, pid_t pid);
+job_node* new_job_node(char **query, pid_t pid,char* st);
 
 /**
  * Initialise une nouvelle liste de jobs

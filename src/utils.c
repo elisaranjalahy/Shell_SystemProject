@@ -69,7 +69,7 @@ job_list* new_job_list(){
     return list;
 }
 
-job_node* new_job_node(char **query,pid_t pid){
+job_node* new_job_node(char **query,pid_t pid,char* st){
     job_node* newJob = malloc(sizeof(job_node));
    if (newJob == NULL) {
         fprintf(stderr, "Erreur d'allocation mémoire pour newJob\n");
@@ -82,8 +82,7 @@ job_node* new_job_node(char **query,pid_t pid){
         strncat(newJob->command, " ", PATH_MAX - strlen(newJob->command) - 1);
         strncat(newJob->command, query[1], PATH_MAX - strlen(newJob->command) - 1);
     }
-
-    //etat à definir
+    newJob->state=st;
     newJob->next=NULL;
     return newJob;
 }
@@ -94,7 +93,7 @@ int affiche_jobs(job_list* jobs){
     int jobID=0;
     while (acc != NULL) {
 
-        printf("[%d] %d (état) %s\n", jobID, acc->pid, acc->command);
+        printf("[%d] %d %s %s\n", jobID, acc->pid,acc->state, acc->command);
         acc = acc->next;
         ++jobID;
     }

@@ -114,8 +114,8 @@ int main(){
     //& : Exécution d'une commande externe a l'arrière-plan
         }else if(strcmp(argv[argc-1],"&")==0){
             argv[argc-1]=NULL;
-            command_results tab = execute_ext_cmd(argv);
-		    job_node* newJob=new_job_node(argv,tab.gid);
+            command_results tab = execute_ext_cmd_ap(argv);
+		    job_node* newJob=new_job_node(argv,tab.gid,tab.state);
             add_job_to_list(jobs,newJob);
 		    last_cmd_success = tab.status;
 
