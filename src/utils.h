@@ -45,7 +45,7 @@ int argvlen(char** argv);
 typedef struct CommandResults {
     gid_t gid; //stock l'id de groupe 
     int status; // 0 si réussi, -1 sinon
-    char* state;
+    char* state;// Running, Done, Stopped, Killed ou Dettached
 } command_results;
 
 /**
@@ -68,7 +68,7 @@ command_results execute_ext_cmd_ap(char **args);
 typedef struct JobNode {
     int pid; // Process Group ID
     char command[PATH_MAX];
-    char* state;
+    char* state;//Running, Done, Stopped, Killed ou Dettached
     struct JobNode* next;
 } job_node;
 
