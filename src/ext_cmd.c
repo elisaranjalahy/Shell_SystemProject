@@ -34,7 +34,7 @@ command_results execute_ext_cmd(char **query) {
 }
 
 command_results execute_ext_cmd_ap(char **query) {
-    command_results tab; //tab[0 contient la valeur de succes de l'appel, tab[1] contient le pid
+    command_results tab; //tab[0 contient la valeur de succes de l'appel, tab[1] contient le pid, tab[2] contient l'état
     tab.status=0;
     pid_t pid=fork();
    if (pid == -1) {
