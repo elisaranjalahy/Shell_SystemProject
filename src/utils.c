@@ -168,13 +168,13 @@ int redirections(char** argv){
                 perror("dup2");
                 return 1;
             }
-            close(fd);
             incr = 0;
 
         }
 
         if (incr == 0){
             int len = argvlen(argv);
+            free(argv[i]); free(argv[i+1]);
             for(int k = i; k < len - 2; k++){
                 argv[k] = argv[k+2];
             }

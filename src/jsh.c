@@ -100,7 +100,7 @@ int main(){
             last_cmd_success = pwd(getenv("PWD"));
 
     //exit
-        }else if(strcmp(argv[0], "exit")==0){
+        }else if(strcmp(argv[0], "exit") == 0){
             if(argv[1] == NULL){
                 exit(last_cmd_success);
             }else {
