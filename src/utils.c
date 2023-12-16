@@ -116,21 +116,22 @@ void add_job_to_list(job_list* jobList, job_node* jobs){
 //          Redirection
 //////
 
-void mkrdr(int new_fd, const char* filename, int flags, mode_t mode){
+int mkrdr(int new_fd, const char* filename, int flags, mode_t mode){
     int fd;
     if ((fd = open(filename, flags, mode)) < 0){
         perror("open");
-        exit(1);
+        return 1;
     }
     if (dup2(fd, new_fd) != new_fd){
         perror("dup2");
-        exit(1);
+        return 1;
     }
     close(fd);
+    return 0;
 }
 
 int mkflags(char* rdr){
-    if (rdr[0] == '2'){return mkflags(rdr+1);}
+    if (rdr[0] == '2'){rdr++;}
     if (rdr[0] == '>'){
         int flags = O_WRONLY | O_CREAT;
         if (rdr[1] == '\0'){return flags | O_EXCL;}
@@ -140,7 +141,7 @@ int mkflags(char* rdr){
     return 0;
 }
 
-void redirections(char** argv){
+int redirections(char** argv){
     int incr = 1;
     for (int i = 0; i < argvlen(argv) - 1; i += incr){
         incr = 1;
@@ -149,23 +150,23 @@ void redirections(char** argv){
             int flags = mkflags(argv[i]);
             if (!flags){continue;}
 
-            mkrdr(STDOUT_FILENO, argv[i+1], flags, S_IRWXU);
+            if (mkrdr(STDOUT_FILENO, argv[i+1], flags, 420)){return 1;}
             incr = 0;
-        } else if (argv[i][0] == 2){
+        } else if (argv[i][0] == '2'){
             int flags = mkflags(argv[i]);
             if (!flags){continue;}
 
-            mkrdr(2, argv[i+1], flags, S_IRWXU);
+            if (mkrdr(2, argv[i+1], flags, 420)){return 1;}
             incr = 0;
         } else if (argv[i][0] == '<' && argv[i][1] == '\0'){
             int fd;
             if ((fd = open(argv[i+1], O_RDONLY)) < 0){
                 perror("open");
-                exit(1);
+                return 1;
             }
             if (dup2(fd, STDIN_FILENO) != STDIN_FILENO){
                 perror("dup2");
-                exit(1);
+                return 1;
             }
             close(fd);
             incr = 0;
@@ -180,4 +181,5 @@ void redirections(char** argv){
             argv[len-1] = NULL; argv[len-2] = NULL;
         }
     }
+    return 0;
 }

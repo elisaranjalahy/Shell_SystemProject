@@ -7,7 +7,7 @@ command_results execute_ext_cmd(char **query) {
     pid_t pid = fork();
     if (pid == 0) {
         // Processus fils
-        redirections(query);
+        //redirections(query);
         execvp(query[0],query);
         perror("Erreur lors de l'exécution de la commande");//si execvp s'est bien déroulé bien, on atteint pas ce perror
         exit(EXIT_FAILURE);
@@ -47,7 +47,7 @@ command_results execute_ext_cmd_ap(char **query) {
         tab.status=-1;
         return tab;
     } else {
-        
+
         setsid();
         int status;
         pid_t result = waitpid(pid, &status, WNOHANG);
@@ -80,7 +80,7 @@ command_results execute_ext_cmd_ap(char **query) {
             }
         }
         return tab;
-        
+
     }
 
 }

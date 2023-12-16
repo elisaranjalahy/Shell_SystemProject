@@ -36,6 +36,10 @@ int main(){
     int last_cmd_success = 0;
     int argc;
 
+    int stdin_fd = dup(0);
+    int stdout_fd = dup(1);
+    int stderr_fd = dup(2);
+
     // Boucle lisant l'entrée utilisateur.
    for (;;){
         char* prompt = mkprompt(jobs, getenv("PWD"));
@@ -61,6 +65,13 @@ int main(){
         }
 	    char** argv = my_to_argv(query);
         free(query);
+
+        if (redirections(argv)){
+            for(int i = 0; i < argvlen(argv); free(argv[i++]));
+            free(argv);
+            last_cmd_success = 1;
+            continue;
+        }
 
         argc = argvlen(argv);
 
@@ -119,6 +130,8 @@ int main(){
             add_job_to_list(jobs,newJob);
 		    last_cmd_success = tab.status;
 
+
+
     // Exécution d'une commande externe a l'avant-plan
 	    }else{
             command_results tab = execute_ext_cmd(argv);
@@ -131,8 +144,13 @@ int main(){
         }
         free(argv);
         free(is_env);
+
+        dup2(stdin_fd, 0);
+        dup2(stdout_fd, 1);
+        dup2(stderr_fd, 2);
+
     }
 
-    
+
     return 0;
 }

@@ -43,7 +43,7 @@ char** my_to_argv(char* query);
 int argvlen(char** argv);
 
 typedef struct CommandResults {
-    gid_t gid; //stock l'id de groupe 
+    gid_t gid; //stock l'id de groupe
     int status; // 0 si réussi, -1 sinon
     char* state;// Running, Done, Stopped, Killed ou Dettached
 } command_results;
@@ -110,8 +110,25 @@ void add_job_to_list(job_list* jobList, job_node* jobs);
 //          Redirections
 //////
 
+ /**
+ * Effectue la redirection en pratique
+ * @param new_fd le flux à rediriger
+ * @param filmename le fichier où rediriger le flux
+ * @param flags  et @param mode les options d'open()
+ */
+int mkrdr(int new_fd, const char* filename, int flags, mode_t mode);
 
-//à commenter
-void mkrdr(int new_fd, const char* filename, int flags, mode_t mode);
+/**
+ * Détermine les flags de open() en fonction
+ * de la redirection souhaitée
+ * @param rdr le string de la redirection souhaitée
+ * @return les flags.
+ */
 int mkflags(char* rdr);
-void redirections(char** argv);
+
+/**
+ * Parcours l'entrée utilisateur à la recherche de redirection
+ * à effectuer, le cas échéant utilise les fonctions ci-dessus.
+ * @param argv l'entrée utilisateur en format plus simple à parcourir.
+ */
+int redirections(char** argv);
