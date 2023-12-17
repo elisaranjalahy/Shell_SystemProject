@@ -120,13 +120,14 @@ int main(){
 
     //jobs
         }else if(strcmp(argv[0],"jobs")==0){ //jobs sans argument
+            maj_etat_jobs(jobs);
             affiche_jobs(jobs);
 
     //& : Exécution d'une commande externe a l'arrière-plan
         }else if(strcmp(argv[argc-1],"&")==0){
             argv[argc-1]=NULL;
-            command_results tab = execute_ext_cmd_ap(argv);
-		    job_node* newJob=new_job_node(argv,tab.pid,tab.state);
+            command_results tab = execute_ext_cmd(argv);
+		    job_node* newJob=new_job_node(argv,tab.pid,"Running");
             add_job_to_list(jobs,newJob);
 		    last_cmd_success = tab.status;
 

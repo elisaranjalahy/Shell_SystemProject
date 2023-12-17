@@ -106,11 +106,40 @@ void add_job_to_list(job_list* jobList, job_node* jobs){
             jobList->head=jobs;
             jobList->tail=jobs;
         }else{
-                jobList->tail->next=jobs;
-                jobList->tail=jobs;
+            jobList->tail->next=jobs;
+            jobList->tail=jobs;
         }
     }
 }
+
+void maj_etat_jobs(job_list* job_list) {
+    job_node* acc = job_list->head;
+    int st;
+
+    while (acc != NULL) {
+        if(getpid()!=0){
+            int val = waitpid(acc->pid, &st, WNOHANG | WUNTRACED);
+
+            if (val == -1) {
+                perror("Erreur lors de l'appel à waitpid");
+                exit(EXIT_FAILURE);
+            } else if (val == 0) {
+                // Le processus n'a pas encore changé d'état
+                acc = acc->next;
+            } else {
+                if (WIFEXITED(st)) {
+                    acc->state="Done";
+                } else if (WIFSIGNALED(st)) {
+                    acc->state="Killed";
+                } else if (WIFSTOPPED(st)) {
+                    acc->state="Stopped";
+                }
+                acc = acc->next;
+            }
+        }
+    }
+}
+
 
 //////
 //          Redirection

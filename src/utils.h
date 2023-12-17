@@ -54,10 +54,7 @@ typedef struct CommandResults {
  * @return 0 si cette commande s'est exécutée correctement, sinon une autre valeur indiquant une erreur
  */
 command_results execute_ext_cmd(char **args);
-/**
- *Permet l'execution des commandes externe en arrière plan par jsh
-*/
-command_results execute_ext_cmd_ap(char **args);
+
 
 
 
@@ -104,6 +101,8 @@ int affiche_jobs(job_list* jobs);
  * à la liste de jobs @param jobList
  **/
 void add_job_to_list(job_list* jobList, job_node* jobs);
+
+void maj_etat_jobs(job_list* job_list);
 
 
 //////
