@@ -43,7 +43,7 @@ char** my_to_argv(char* query);
 int argvlen(char** argv);
 
 typedef struct CommandResults {
-    gid_t gid; //stock l'id de groupe
+    gid_t pid; //stock l'id de groupe 
     int status; // 0 si réussi, -1 sinon
     char* state;// Running, Done, Stopped, Killed ou Dettached
 } command_results;
