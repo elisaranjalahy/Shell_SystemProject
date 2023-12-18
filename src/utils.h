@@ -43,7 +43,7 @@ char** my_to_argv(char* query);
 int argvlen(char** argv);
 
 typedef struct CommandResults {
-    gid_t pid; //stock l'id de groupe 
+    gid_t pid; //stock l'id de groupe
     int status; // 0 si réussi, -1 sinon
     char* state;// Running, Done, Stopped, Killed ou Dettached
 } command_results;
@@ -53,7 +53,7 @@ typedef struct CommandResults {
  * @param args prend la commande externe et ses arguments/options donnés au shell
  * @return 0 si cette commande s'est exécutée correctement, sinon une autre valeur indiquant une erreur
  */
-command_results execute_ext_cmd(char **args);
+int execute_ext_cmd(char **args);
 
 
 
@@ -63,9 +63,9 @@ command_results execute_ext_cmd(char **args);
 //////
 
 typedef struct JobNode {
-    int pid; // Process Group ID
+    int pid; // Process ID
     char command[PATH_MAX];
-    char* state;//Running, Done, Stopped, Killed ou Dettached
+    char* state;//Running, Done, Stopped, Killed ou Detached
     struct JobNode* next;
 } job_node;
 

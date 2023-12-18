@@ -29,6 +29,58 @@ char* mkprompt(job_list* jobs, char* cur_path){
     return strcat(prompt, "\001\033[0m\002$ ");
 }
 
+
+int fun(int argc, char** argv, int bg, int lcss, job_list* jobs){
+    int last_cmd_success = lcss;
+    int pid;
+
+    if (bg) {
+        if ((pid = fork())){
+            job_node* job = new_job_node(argv, pid, "Running");
+            add_job_to_list(jobs, job);
+            fprintf(stderr, "[XXX]\tYYYYYYYY\t%s\t%s\n", job->state, job->command);
+        } else {
+            exit(fun(argc, argv, 0, last_cmd_success, jobs));
+        }
+
+    //cd
+    } else if (strcmp(argv[0], "cd") == 0){
+        last_cmd_success = my_cd(getenv("PWD"), argv + 1);
+
+    //pwd
+    } else if (strcmp(argv[0], "pwd") == 0){
+            last_cmd_success = pwd(getenv("PWD"));
+
+    //exit
+    } else if (strcmp(argv[0], "exit") == 0){
+        if(argv[1] == NULL){
+            exit(last_cmd_success);
+        }else {
+            exit(atoi(argv[1]));
+        }
+
+    //?
+    } else if (strcmp(argv[0], "?") == 0){
+        char* lcs = utos(last_cmd_success);
+        if (write(STDOUT_FILENO, lcs, strlen(lcs)) > 0){
+            write(STDOUT_FILENO, "\n", 1);
+            last_cmd_success = 0;
+        } else {
+            last_cmd_success = 1;
+        }
+        free(lcs);
+
+    //jobs
+    } else if (strcmp(argv[0],"jobs") == 0){ //jobs sans argument
+            affiche_jobs(jobs);
+
+    //Exécution d'une commande externe
+    } else {
+        last_cmd_success = execute_ext_cmd(argv);
+    }
+    return last_cmd_success;
+}
+
 int main(){
     job_list* jobs = new_job_list();
     rl_outstream = stderr;  // Affichage du prompt sur la sortie erreur
@@ -36,12 +88,13 @@ int main(){
     int last_cmd_success = 0;
     int argc;
 
+
     int stdin_fd = dup(0);
     int stdout_fd = dup(1);
     int stderr_fd = dup(2);
 
     // Boucle lisant l'entrée utilisateur.
-   for (;;){
+    for (;;){
         char* prompt = mkprompt(jobs, getenv("PWD"));
         char* query = readline(prompt);
 
@@ -89,56 +142,15 @@ int main(){
             }
         }
 
-//Identification des commandes entrée dans le terminal
+        if (strcmp(argv[argc-1], "&") == 0){
+            free(argv[argc-1]);
+            argv[argc-1] = NULL;
+            last_cmd_success = fun(argc-1 , argv, 1, last_cmd_success, jobs);
+        } else {
+            last_cmd_success = fun(argc, argv, 0, last_cmd_success, jobs);
+        }
 
-    //cd
-        if (strcmp(argv[0], "cd") == 0){
-            last_cmd_success = my_cd(getenv("PWD"), argv + 1);
-
-    //ls
-        }else if(strcmp(argv[0], "pwd") == 0){
-            last_cmd_success = pwd(getenv("PWD"));
-
-    //exit
-        }else if(strcmp(argv[0], "exit") == 0){
-            if(argv[1] == NULL){
-                exit(last_cmd_success);
-            }else {
-                exit(atoi(argv[1]));
-            }
-
-    //?
-        }else if(strcmp(argv[0], "?") == 0){
-            char* lcs = utos(last_cmd_success);
-            if (write(STDOUT_FILENO, lcs, strlen(lcs)) > 0){
-                write(STDOUT_FILENO, "\n", 1);
-                last_cmd_success = 0;
-            } else {
-                last_cmd_success = 1;
-            }
-            free(lcs);
-
-    //jobs
-        }else if(strcmp(argv[0],"jobs")==0){ //jobs sans argument
-            maj_etat_jobs(jobs);
-            affiche_jobs(jobs);
-
-    //& : Exécution d'une commande externe a l'arrière-plan
-        }else if(strcmp(argv[argc-1],"&")==0){
-            argv[argc-1]=NULL;
-            command_results tab = execute_ext_cmd(argv);
-		    job_node* newJob=new_job_node(argv,tab.pid,"Running");
-            add_job_to_list(jobs,newJob);
-		    last_cmd_success = tab.status;
-
-
-
-    // Exécution d'une commande externe a l'avant-plan
-	    }else{
-            command_results tab = execute_ext_cmd(argv);
-            last_cmd_success = tab.status;
-       	}
-
+        maj_etat_jobs(jobs);
 
         for (int i=0; i<argc; i++){
             if (!is_env[i]){free(argv[i]);}
@@ -149,9 +161,6 @@ int main(){
         dup2(stdin_fd, 0);
         dup2(stdout_fd, 1);
         dup2(stderr_fd, 2);
-
     }
-
-
     return 0;
 }

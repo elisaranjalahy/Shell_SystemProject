@@ -109,12 +109,13 @@ void add_job_to_list(job_list* jobList, job_node* jobs){
             jobList->tail->next=jobs;
             jobList->tail=jobs;
         }
+        jobList->length++;
     }
 }
 
 void maj_etat_jobs(job_list* job_list) {
     job_node* acc = job_list->head;
-    int st;
+    int st; job_node* prev = NULL;
 
     while (acc != NULL) {
         if(getpid()!=0){
@@ -129,12 +130,26 @@ void maj_etat_jobs(job_list* job_list) {
             } else {
                 if (WIFEXITED(st)) {
                     acc->state="Done";
+                    fprintf(stderr, "[XXX]\tYYYYYYYY\t%s\t%s\n", acc->state, acc->command);
+                    if (prev){
+                        prev->next = acc->next;
+                        free(acc); acc = prev;
+                        job_list -> length --;
+                    } else {
+                        job_list->head = acc->next;
+                        if (acc == job_list->tail){job_list->tail = NULL;};
+                        free(acc); acc = job_list->head;
+                        job_list -> length --;
+                        continue;
+                    }
+
                 } else if (WIFSIGNALED(st)) {
                     acc->state="Killed";
                 } else if (WIFSTOPPED(st)) {
                     acc->state="Stopped";
                 }
-                acc = acc->next;
+                prev = acc;
+                if (acc){acc = acc->next;};
             }
         }
     }
