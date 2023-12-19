@@ -78,10 +78,11 @@ job_node* new_job_node(char **query,pid_t pid,char* st){
 
     newJob->pid = pid;
     int i = 0;
-    while (query[i] != NULL) {
+    newJob->command[0] = '\0';
+    strcat(newJob->command, query[0]);
+    while (query[++i] != NULL) {
         strncat(newJob->command, " ", PATH_MAX - strlen(newJob->command) - 1);
         strncat(newJob->command, query[i], PATH_MAX - strlen(newJob->command) - 1);
-        i++;
     }
     newJob->state=st;
     newJob->next=NULL;
