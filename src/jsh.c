@@ -39,6 +39,7 @@ int fun(int argc, char** argv, int bg, int lcss, job_list* jobs){
             job_node* job = new_job_node(argv, pid, "Running");
             add_job_to_list(jobs, job);
         } else {
+            setpgid(0, getpid());
             exit(fun(argc, argv, 0, last_cmd_success, jobs));
         }
 

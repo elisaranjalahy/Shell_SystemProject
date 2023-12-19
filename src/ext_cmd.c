@@ -18,7 +18,7 @@ int execute_ext_cmd(char **query, job_list* jobs) {
         int st; int npid; //info sur l'état de sortie du processus pid
 
         bac:
-        if ((npid = waitpid(0, &st, 0)) != pid){
+        if ((npid = waitpid(-1, &st, 0)) != pid){
             update_job(npid, st, jobs);
             goto bac;
         }

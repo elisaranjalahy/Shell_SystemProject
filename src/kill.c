@@ -19,7 +19,7 @@ int my_kill(int argc, char** argv, job_list* jobs){
         while (--v && acc){
             // On part du principe que c'est positif, sinon malaise
             acc = acc->next;
-        } if (v) {
+        } if (v || !acc) {
             fprintf(stderr, "requested job does not exist\n");
             return 1;
         } pid = acc->pid;
@@ -27,10 +27,12 @@ int my_kill(int argc, char** argv, job_list* jobs){
         pid = atoi(ptet_pid);
     }
 
-    if (kill(pid, sig) < 0){
+    if (kill(-pid, sig) < 0){
         perror("kill");
         return 1;
     }
+
+    //fprintf(stdout, "kill: sent signal %d to process %d\n", sig, pid);
     //maj_etat_jobs(jobs);
     return 0;
 }
