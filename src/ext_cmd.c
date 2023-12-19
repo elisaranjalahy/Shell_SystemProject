@@ -1,6 +1,6 @@
 #include "utils.h"
 
-int execute_ext_cmd(char **query) {
+int execute_ext_cmd(char **query, job_list* jobs) {
 
     //command_results tab; //tab[0 contient la valeur de succes de l'appel, tab[1] contient le pid
 
@@ -15,8 +15,13 @@ int execute_ext_cmd(char **query) {
         perror("Erreur lors de la création du processus fils");
 	    return 1;//tab;
     } else {
-        int st; //info sur l'état de sortie du processus pid
-        waitpid(pid, &st, 0);
+        int st; int npid; //info sur l'état de sortie du processus pid
+
+        bac:
+        if ((npid = waitpid(0, &st, 0)) != pid){
+            update_job(npid, st, jobs);
+            goto bac;
+        }
 
         if (WIFEXITED(st)) {
             // vraie si la commande externe s'est terminée correctement
@@ -31,5 +36,3 @@ int execute_ext_cmd(char **query) {
     }
 
 }
-
-

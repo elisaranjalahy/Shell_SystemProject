@@ -38,7 +38,6 @@ int fun(int argc, char** argv, int bg, int lcss, job_list* jobs){
         if ((pid = fork())){
             job_node* job = new_job_node(argv, pid, "Running");
             add_job_to_list(jobs, job);
-            fprintf(stderr, "[XXX]\tYYYYYYYY\t%s\t%s\n", job->state, job->command);
         } else {
             exit(fun(argc, argv, 0, last_cmd_success, jobs));
         }
@@ -46,6 +45,10 @@ int fun(int argc, char** argv, int bg, int lcss, job_list* jobs){
     //cd
     } else if (strcmp(argv[0], "cd") == 0){
         last_cmd_success = my_cd(getenv("PWD"), argv + 1);
+
+    //kill
+    } else if (strcmp(argv[0], "kill") == 0){
+        last_cmd_success = my_kill(argc, argv, jobs);
 
     //pwd
     } else if (strcmp(argv[0], "pwd") == 0){
@@ -76,7 +79,7 @@ int fun(int argc, char** argv, int bg, int lcss, job_list* jobs){
 
     //Exécution d'une commande externe
     } else {
-        last_cmd_success = execute_ext_cmd(argv);
+        last_cmd_success = execute_ext_cmd(argv, jobs);
     }
     return last_cmd_success;
 }
@@ -149,8 +152,6 @@ int main(){
         } else {
             last_cmd_success = fun(argc, argv, 0, last_cmd_success, jobs);
         }
-
-        maj_etat_jobs(jobs);
 
         for (int i=0; i<argc; i++){
             if (!is_env[i]){free(argv[i]);}

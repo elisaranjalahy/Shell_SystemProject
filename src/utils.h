@@ -1,9 +1,5 @@
 #include "lib.h"
 
-#ifndef PATH_MAX
-    #define PATH_MAX (1 << 10)
-#endif
-
 ////
 //  Fonctions utiliaires
 ////
@@ -48,33 +44,19 @@ typedef struct CommandResults {
     char* state;// Running, Done, Stopped, Killed ou Dettached
 } command_results;
 
-/**
- * Permet l'execution des commande externe par jsh
- * @param args prend la commande externe et ses arguments/options donnés au shell
- * @return 0 si cette commande s'est exécutée correctement, sinon une autre valeur indiquant une erreur
- */
-int execute_ext_cmd(char **args);
-
-
-
 
 //////
 //          Jobs
 //////
 
-typedef struct JobNode {
-    int pid; // Process ID
-    char command[PATH_MAX];
-    char* state;//Running, Done, Stopped, Killed ou Detached
-    struct JobNode* next;
-} job_node;
 
-typedef struct JobList {
-    int length;
-    job_node* head;
-    job_node* tail;
-} job_list;
 
+/**
+ * Permet l'execution des commande externe par jsh
+ * @param args prend la commande externe et ses arguments/options donnés au shell
+ * @return 0 si cette commande s'est exécutée correctement, sinon une autre valeur indiquant une erreur
+ */
+int execute_ext_cmd(char **args, job_list* jobs);
 
 /**
  * initialise et renvoie un nouveau job à chaque commande
@@ -103,31 +85,4 @@ int affiche_jobs(job_list* jobs);
 void add_job_to_list(job_list* jobList, job_node* jobs);
 
 void maj_etat_jobs(job_list* job_list);
-
-
-//////
-//          Redirections
-//////
-
- /**
- * Effectue la redirection en pratique
- * @param new_fd le flux à rediriger
- * @param filmename le fichier où rediriger le flux
- * @param flags  et @param mode les options d'open()
- */
-int mkrdr(int new_fd, const char* filename, int flags, mode_t mode);
-
-/**
- * Détermine les flags de open() en fonction
- * de la redirection souhaitée
- * @param rdr le string de la redirection souhaitée
- * @return les flags.
- */
-int mkflags(char* rdr);
-
-/**
- * Parcours l'entrée utilisateur à la recherche de redirection
- * à effectuer, le cas échéant utilise les fonctions ci-dessus.
- * @param argv l'entrée utilisateur en format plus simple à parcourir.
- */
-int redirections(char** argv);
+void update_job(pid_t pid, int st, job_list* jobs);
