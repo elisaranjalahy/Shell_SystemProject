@@ -86,3 +86,9 @@ void add_job_to_list(job_list* jobList, job_node* jobs);
 
 void maj_etat_jobs(job_list* job_list);
 void update_job(pid_t pid, int st, job_list* jobs);
+
+
+//////
+//          exit
+//////
+bool exit_possible(job_list* jobLits);

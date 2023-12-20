@@ -57,10 +57,15 @@ int fun(int argc, char** argv, int bg, int lcss, job_list* jobs){
 
     //exit
     } else if (strcmp(argv[0], "exit") == 0){
-        if(argv[1] == NULL){
-            exit(last_cmd_success);
+        if(exit_possible(jobs)){
+            if(argv[1] == NULL){
+                exit(last_cmd_success);
+            }else {
+                exit(atoi(argv[1]));
+            }
         }else {
-            exit(atoi(argv[1]));
+            perror("Job encore en cours d'exécution ou suspendus");
+            last_cmd_success=1;
         }
 
     //?

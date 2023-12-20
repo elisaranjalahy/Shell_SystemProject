@@ -10,6 +10,7 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <signal.h>
+#include <stdbool.h>
 
 
 #ifndef PATH_MAX

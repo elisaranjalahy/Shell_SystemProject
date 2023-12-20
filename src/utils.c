@@ -203,3 +203,18 @@ void update_job(pid_t pid, int st, job_list* jobs){
         if (acc){acc = acc->next;}
     }
 }
+
+//////
+//          exit
+//////
+
+bool exit_possible(job_list* jobs){
+    job_node* acc = jobs->head;
+    while (acc != NULL){
+        if(strcmp(acc->state,"Running")==0||strcmp(acc->state,"Stopped")==0){
+            return false;
+        }
+        acc = acc->next;
+    }
+    return true;
+}
