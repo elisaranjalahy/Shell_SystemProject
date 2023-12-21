@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -pedantic -std=c99 -lreadline -g
+CFLAGS = -Wall -pedantic -std=gnu11 -lreadline -g
 
 SRC_DIR = src
 BUILD_DIR = build
