@@ -92,10 +92,10 @@ job_node* new_job_node(char **query,pid_t pid,char* st){
 
 int affiche_jobs(job_list* jobs){
     job_node* acc = jobs->head;//pour parcourir la liste sans changer le vrai pointeur head
-    int jobID=0;
+    int jobID=1;
     while (acc != NULL && acc->state[0] == 'R') {
 
-        printf("[%d] %d %s %s\n", jobID, acc->pid,acc->state, acc->command);
+        printf("[%d]\t%d\t%s\t%s\n", jobID, acc->pid,acc->state, acc->command);
         acc = acc->next;
         ++jobID;
     }
@@ -181,8 +181,7 @@ void maj_etat_jobs(job_list* job_list) {
 
 void update_job(pid_t pid, int st, job_list* jobs){
     job_node* acc = jobs->head;
-    job_node* prev = NULL;
-    int i = 0;
+    int i = 1;
     while (acc != NULL){
         if (acc->pid == pid){
             if (WIFEXITED(st)) {
@@ -199,7 +198,6 @@ void update_job(pid_t pid, int st, job_list* jobs){
             break;
         }
         i++;
-        prev = acc;
         if (acc){acc = acc->next;}
     }
 }
