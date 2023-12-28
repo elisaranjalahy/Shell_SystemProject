@@ -1,9 +1,5 @@
 #include "lib.h"
 
-#ifndef PATH_MAX
-    #define PATH_MAX 1 << 10
-#endif
-
 ////
 //  Fonctions utiliaires
 ////
@@ -42,24 +38,57 @@ char** my_to_argv(char* query);
  */
 int argvlen(char** argv);
 
+typedef struct CommandResults {
+    gid_t pid; //stock l'id de groupe
+    int status; // 0 si réussi, -1 sinon
+    char* state;// Running, Done, Stopped, Killed ou Dettached
+} command_results;
+
+
 //////
 //          Jobs
 //////
 
-typedef struct JobNode {
-    int jobID;
-    int pgid; // Process Group ID
-    char command[PATH_MAX];
-    int state;
-    int background;
-    struct JobNode* next;
-} job_node;
 
-typedef struct JobList {
-    int length;
-    job_node* head;
-    job_node* tail;
-} job_list;
 
-job_node* new_job_node();
+/**
+ * Permet l'execution des commande externe par jsh
+ * @param args prend la commande externe et ses arguments/options donnés au shell
+ * @return 0 si cette commande s'est exécutée correctement, sinon une autre valeur indiquant une erreur
+ */
+int execute_ext_cmd(char **args, job_list* jobs);
+
+/**
+ * initialise et renvoie un nouveau job à chaque commande
+ * externe appelée en arrière-plan
+ * definit son champ @param pid
+ * récupere la commande appelée pour definir @param command
+ * @param state definit son état actuel (running, done...)
+ * definit @param next à NULL
+ **/
+job_node* new_job_node(char **query, pid_t pid, char* st, int jid, int fg);
+
+/**
+ * Initialise une nouvelle liste de jobs
+ **/
 job_list* new_job_list();
+
+/**
+ * affiche la liste @param jobs de jobs donnée en argument
+ **/
+int affiche_jobs(job_list* jobs);
+
+/**
+ * ajoute le le nouveau jobs @param jobs
+ * à la liste de jobs @param jobList
+ **/
+void add_job_to_list(job_list* jobList, job_node* jobs);
+
+void maj_etat_jobs(job_list* job_list);
+void update_job(pid_t pid, int st, job_list* jobs, FILE* output);
+
+int next_job_id(job_list* job_list);
+//////
+//          exit
+//////
+bool exit_possible(job_list* jobLits);
