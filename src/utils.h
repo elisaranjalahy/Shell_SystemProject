@@ -66,7 +66,7 @@ int execute_ext_cmd(char **args, job_list* jobs);
  * @param state definit son état actuel (running, done...)
  * definit @param next à NULL
  **/
-job_node* new_job_node(char **query, pid_t pid,char* st);
+job_node* new_job_node(char **query, pid_t pid, char* st, int jid, int fg);
 
 /**
  * Initialise une nouvelle liste de jobs
@@ -85,9 +85,9 @@ int affiche_jobs(job_list* jobs);
 void add_job_to_list(job_list* jobList, job_node* jobs);
 
 void maj_etat_jobs(job_list* job_list);
-void update_job(pid_t pid, int st, job_list* jobs);
+void update_job(pid_t pid, int st, job_list* jobs, FILE* output);
 
-
+int next_job_id(job_list* job_list);
 //////
 //          exit
 //////

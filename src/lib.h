@@ -19,6 +19,8 @@
 
 
 typedef struct JobNode {
+    int jid; // Job ID
+    int fg;
     int pid; // Process ID
     char command[PATH_MAX];
     char* state;//Running, Done, Stopped, Killed ou Detached

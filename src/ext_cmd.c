@@ -17,12 +17,16 @@ int execute_ext_cmd(char **query, job_list* jobs) {
     } else {
         int st; int npid; //info sur l'état de sortie du processus pid
 
+        job_node* job = new_job_node(query, pid, "Running", next_job_id(jobs), 1);
+        add_job_to_list(jobs, job);
+
         bac:
         if ((npid = waitpid(-1, &st, WUNTRACED | WCONTINUED)) != pid){
-            update_job(npid, st, jobs);
+            update_job(npid, st, jobs, stderr);
             goto bac;
         }
 
+        update_job(npid, st, jobs, stderr);
         if (WIFEXITED(st)) {
             // vraie si la commande externe s'est terminée correctement
             return WEXITSTATUS(st); // et renvoie le code de sortie du processus

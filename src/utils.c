@@ -69,7 +69,7 @@ job_list* new_job_list(){
     return list;
 }
 
-job_node* new_job_node(char **query,pid_t pid,char* st){
+job_node* new_job_node(char **query, pid_t pid, char* st, int jid, int fg){
     job_node* newJob = malloc(sizeof(job_node));
    if (newJob == NULL) {
         fprintf(stderr, "Erreur d'allocation mémoire pour newJob\n");
@@ -77,6 +77,9 @@ job_node* new_job_node(char **query,pid_t pid,char* st){
     }
 
     newJob->pid = pid;
+    newJob->jid = jid;
+    newJob->fg = fg;
+
     int i = 0;
     newJob->command[0] = '\0';
     strcat(newJob->command, query[0]);
@@ -89,15 +92,13 @@ job_node* new_job_node(char **query,pid_t pid,char* st){
     return newJob;
 }
 
-
 int affiche_jobs(job_list* jobs){
     job_node* acc = jobs->head;//pour parcourir la liste sans changer le vrai pointeur head
-    int jobID=1;
-    while (acc != NULL && acc->state[0] == 'R') {
-
-        printf("[%d]\t%d\t%s\t%s\n", jobID, acc->pid,acc->state, acc->command);
+    while (acc != NULL){ //&& acc->state[0] == 'R') {
+        if (acc->jid > 0){
+            printf("[%d]\t%d\t%s\t%s\n", acc->jid, acc->pid,acc->state, acc->command);
+        }
         acc = acc->next;
-        ++jobID;
     }
     return 0;
 }
@@ -112,74 +113,31 @@ void add_job_to_list(job_list* jobList, job_node* job){
             jobList->tail=job;
         }
         jobList->length++;
-        fprintf(stderr, "[%d]\t%d\t%s\t%s\n", jobList->length, (int)job->pid, job->state, job->command);
+        if (!job->fg) fprintf(stderr, "[%d]\t%d\t%s\t%s\n", job->jid, (int)job->pid, job->state, job->command);
     }
 }
 
-/*void rmjob(int pid, job_list* jobs){
-    job_node* prev = NULL;
-    job_node* acc = jobs->head;
-    while (acc && acc->pid != pid){
-        prev = acc;
-        acc = acc->next;
-    }
-    if (acc == jobs->tail){jobs->tail = prev;}
-    if (prev){
-        prev->next = acc->next;
-        free(acc);
-        jobs->length --;
-    } else {
-        jobs->head = acc->next;
-        free(acc);
-        jobs->length --;
-    }
-
-}*/
-
 void maj_etat_jobs(job_list* job_list) {
     job_node* acc = job_list->head;
-    int st; job_node* prev = NULL;
+    int st;
 
     while (acc != NULL) {
-        if(getpid()!=0){
-            int val = waitpid(acc->pid, &st, WNOHANG | WUNTRACED);
+
+        if (acc->jid > 0 && acc->state[0] >= 'R'){
+            int val = waitpid(acc->pid, &st, WNOHANG | WCONTINUED);
 
             if (val == -1) {
                 perror("Erreur lors de l'appel à waitpid");
                 exit(EXIT_FAILURE);
-            } else if (val == 0) {
-                // Le processus n'a pas encore changé d'état
-                acc = acc->next;
-            } else {
-                if (WIFEXITED(st)) {
-                    acc->state="Done";
-                    fprintf(stderr, "[XXX]\tYYYYYYYY\t%s\t%s\n", acc->state, acc->command);
-                    if (prev){
-                        prev->next = acc->next;
-                        free(acc); acc = prev;
-                        job_list -> length --;
-                    } else {
-                        job_list->head = acc->next;
-                        if (acc == job_list->tail){job_list->tail = NULL;};
-                        free(acc); acc = job_list->head;
-                        job_list -> length --;
-                        continue;
-                    }
-
-                } else if (WIFSIGNALED(st)) {
-                    acc->state="Killed";
-                } else if (WIFSTOPPED(st)) {
-                    acc->state="Stopped";
-                }
-                prev = acc;
-                if (acc){acc = acc->next;};
+            } else if (val){
+                update_job(acc->pid, st, job_list, stdout);
             }
         }
+        acc = acc->next;
     }
 }
 
-
-void update_job(pid_t pid, int st, job_list* jobs){
+void update_job(pid_t pid, int st, job_list* jobs, FILE* output){
     job_node* acc = jobs->head;
     int i = 1;
     while (acc != NULL){
@@ -190,16 +148,35 @@ void update_job(pid_t pid, int st, job_list* jobs){
                 acc->state="Killed";
             } else if (WIFSTOPPED(st)) {
                 acc->state="Stopped";
+                jobs->length ++;
+            } else if (WIFCONTINUED(st)) {
+                acc->state="Running";
+                jobs->length ++;
             } else {
                 perror("waitpid");
             }
-            fprintf(stderr, "[%d]\t%d\t%s\t%s\n", i, (int)acc->pid, acc->state, acc->command);
-            jobs->length --;
+            if (!acc->fg || acc->state[0] >= 'K') fprintf(output, "[%d]\t%d\t%s\t%s\n", acc->jid, (int)acc->pid, acc->state, acc->command);
+            if (acc->state[0] < 'R') acc->jid = -1;
+            jobs->length--;
             break;
         }
         i++;
         if (acc){acc = acc->next;}
     }
+}
+
+int next_job_id(job_list* job_list){
+    int tor = 0; int tmp = 1;
+    job_node* job = job_list->head;
+
+    while (tmp != tor){
+        tor = tmp;
+        while (job){
+            if (job->jid == tmp) tmp++;
+            job = job->next;
+        }
+    }
+    return tor;
 }
 
 //////

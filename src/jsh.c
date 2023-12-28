@@ -30,17 +30,17 @@ char* mkprompt(job_list* jobs, char* cur_path){
 }
 
 
-int fun(int argc, char** argv, int bg, int lcss, job_list* jobs){
+int parse(int argc, char** argv, int bg, int lcss, job_list* jobs){
     int last_cmd_success = lcss;
     int pid;
 
     if (bg) {
         if ((pid = fork())){
-            job_node* job = new_job_node(argv, pid, "Running");
+            job_node* job = new_job_node(argv, pid, "Running", next_job_id(jobs), 0);
             add_job_to_list(jobs, job);
         } else {
             setpgid(0, getpid());
-            exit(fun(argc, argv, 0, last_cmd_success, jobs));
+            exit(parse(argc, argv, 0, last_cmd_success, jobs));
         }
 
     //cd
@@ -81,7 +81,8 @@ int fun(int argc, char** argv, int bg, int lcss, job_list* jobs){
 
     //jobs
     } else if (strcmp(argv[0],"jobs") == 0){ //jobs sans argument
-            affiche_jobs(jobs);
+        maj_etat_jobs(jobs);
+        affiche_jobs(jobs);
 
     //Exécution d'une commande externe
     } else {
@@ -154,9 +155,9 @@ int main(){
         if (strcmp(argv[argc-1], "&") == 0){
             free(argv[argc-1]);
             argv[argc-1] = NULL;
-            last_cmd_success = fun(argc-1 , argv, 1, last_cmd_success, jobs);
+            last_cmd_success = parse(argc-1 , argv, 1, last_cmd_success, jobs);
         } else {
-            last_cmd_success = fun(argc, argv, 0, last_cmd_success, jobs);
+            last_cmd_success = parse(argc, argv, 0, last_cmd_success, jobs);
         }
 
         for (int i=0; i<argc; i++){

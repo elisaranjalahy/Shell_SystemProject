@@ -1,6 +1,7 @@
 #include "utils.h"
 
 int my_kill(int argc, char** argv, job_list* jobs){
+    //write(1, "juifs", 5);
     int sig; char* ptet_pid; pid_t pid;
     if (argc < 1 || argc > 3) {
         fprintf(stderr, "kill: invalid number of arguments\n");
@@ -16,10 +17,9 @@ int my_kill(int argc, char** argv, job_list* jobs){
     if (ptet_pid[0] == '%'){
         int v = atoi(ptet_pid+1);
         job_node* acc = jobs->head;
-        while (--v && acc){
-            // On part du principe que c'est positif, sinon malaise
+        while (acc && acc->jid != v){
             acc = acc->next;
-        } if (v || !acc) {
+        } if (!acc) {
             fprintf(stderr, "requested job does not exist\n");
             return 1;
         } pid = acc->pid;
@@ -27,6 +27,8 @@ int my_kill(int argc, char** argv, job_list* jobs){
         pid = atoi(ptet_pid);
     }
 
+    //fprintf(stderr, "killing pid : %d\n", pid);
+    //sleep(2);
     if (kill(-pid, sig) < 0){
         perror("kill");
         return 1;
