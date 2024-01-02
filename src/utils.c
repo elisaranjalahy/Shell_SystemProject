@@ -193,6 +193,20 @@ int next_job_id(job_list* job_list){
     return tor;
 }
 
+const char* getCommand(job_list *jobList, int pid){
+    job_node* acc = jobList->head;//pour parcourir la liste sans changer le vrai pointeur head
+    while (acc != NULL){ 
+
+        if (acc->pid == pid){
+            return acc->command;
+        }
+        acc = acc->next;
+    }
+    if (acc == NULL){
+        return NULL;
+    }
+}
+
 //////
 //          exit
 //////

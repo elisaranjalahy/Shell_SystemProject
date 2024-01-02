@@ -83,6 +83,27 @@ int parse(int argc, char** argv, int bg, int lcss, job_list* jobs){
     } else if (strcmp(argv[0],"jobs") == 0){ //jobs sans argument
         affiche_jobs(jobs);
 
+    //fg
+    }else if (strcmp(argv[0],"fg")==0){ 
+        int jobPid;
+        if (sscanf(argv[1], "%%%d", &jobPid) != 1) {
+            fprintf(stderr, "Erreur lors de l'extraction du pid\n");
+            return 1;
+        }
+        const char * cmd = malloc(sizeof(char)+1);
+        if (cmd == NULL){
+            return 1;
+        }
+
+        cmd = getCommand(jobs,jobPid);
+
+        if(cmd ==NULL){
+            perror("Il n'existe pas de job ayant ce pid");
+            return 1;
+        }else{
+            last_cmd_success = system(cmd);
+        }
+
     //Exécution d'une commande externe
     } else {
         last_cmd_success = execute_ext_cmd(argv, jobs);
