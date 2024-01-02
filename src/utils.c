@@ -94,10 +94,12 @@ job_node* new_job_node(char **query, pid_t pid, char* st, int jid, int fg){
 
 int affiche_jobs(job_list* jobs){
     job_node* acc = jobs->head;//pour parcourir la liste sans changer le vrai pointeur head
+    maj_etat_jobs(jobs);
     while (acc != NULL){ //&& acc->state[0] == 'R') {
         if (acc->jid > 0){
             printf("[%d]\t%d\t%s\t%s\n", acc->jid, acc->pid,acc->state, acc->command);
         }
+        if (acc->state[0] < 'L'){acc->jid = -1;}
         acc = acc->next;
     }
     return 0;
@@ -117,8 +119,8 @@ void add_job_to_list(job_list* jobList, job_node* job){
     }
 }
 
-void maj_etat_jobs(job_list* job_list) {
-    job_node* acc = job_list->head;
+void maj_etat_jobs(job_list* jobs) {
+    job_node* acc = jobs->head;
     int st;
 
     while (acc != NULL) {
@@ -130,7 +132,19 @@ void maj_etat_jobs(job_list* job_list) {
                 perror("Erreur lors de l'appel à waitpid");
                 exit(EXIT_FAILURE);
             } else if (val){
-                update_job(acc->pid, st, job_list, stdout);
+                if (WIFEXITED(st)) {
+                    acc->state="Done";
+                    jobs->length--;
+                } else if (WIFSIGNALED(st)) {
+                    acc->state="Killed";
+                    jobs->length--;
+                } else if (WIFSTOPPED(st)) {
+                    acc->state="Stopped";
+                } else if (WIFCONTINUED(st)) {
+                    acc->state="Running";
+                } else {
+                    perror("waitpid");
+                }
             }
         }
         acc = acc->next;
