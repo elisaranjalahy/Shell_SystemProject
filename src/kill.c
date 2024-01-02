@@ -1,7 +1,6 @@
 #include "utils.h"
 
 int my_kill(int argc, char** argv, job_list* jobs){
-    //write(1, "juifs", 5);
     int sig; char* ptet_pid; pid_t pid;
     if (argc < 1 || argc > 3) {
         fprintf(stderr, "kill: invalid number of arguments\n");

@@ -44,10 +44,14 @@ typedef struct CommandResults {
     char* state;// Running, Done, Stopped, Killed ou Dettached
 } command_results;
 
+
+char** parse_pipes(char** argv);
+
 /**
  * Recupere la commande associé au job de pid @param pid
 **/
 const char* getCommand(job_list *jobList, int jid);
+
 
 
 //////

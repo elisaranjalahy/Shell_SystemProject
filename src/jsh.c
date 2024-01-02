@@ -81,7 +81,6 @@ int parse(int argc, char** argv, int bg, int lcss, job_list* jobs){
 
     //jobs
     } else if (strcmp(argv[0],"jobs") == 0){ //jobs sans argument
-        maj_etat_jobs(jobs);
         affiche_jobs(jobs);
 
     //fg
@@ -119,6 +118,8 @@ int main(){
     int last_cmd_success = 0;
     int argc;
 
+    pid_t parent_pid = getpid();
+
 
     int stdin_fd = dup(0);
     int stdout_fd = dup(1);
@@ -147,8 +148,26 @@ int main(){
             free(query);
             continue;
         }
-	    char** argv = my_to_argv(query);
+	    char** _argv = my_to_argv(query);
         free(query);
+
+        argc = argvlen(_argv);
+
+        // Récupération de la valeur des
+        // variables d'environnement
+        char* is_env = calloc(argc, sizeof(char));
+        char* k;
+        for (int i = 0; i<argc; i++){
+            if (_argv[i][0] == '$'){
+                k = getenv(_argv[i]+1);
+                if (k){
+                    _argv[i] = k;
+                    is_env[i]++;
+                }
+            }
+        }
+
+        char** argv = parse_pipes(_argv);
 
         if (redirections(argv)){
             for(int i = 0; i < argvlen(argv); free(argv[i++]));
@@ -159,20 +178,6 @@ int main(){
 
         argc = argvlen(argv);
 
-        // Récupération de la valeur des
-        // variables d'environnement
-        char* is_env = calloc(argc, sizeof(char));
-        char* k;
-        for (int i = 0; i<argc; i++){
-            if (argv[i][0] == '$'){
-                k = getenv(argv[i]+1);
-                if (k){
-                    argv[i] = k;
-                    is_env[i]++;
-                }
-            }
-        }
-
         if (strcmp(argv[argc-1], "&") == 0){
             free(argv[argc-1]);
             argv[argc-1] = NULL;
@@ -181,15 +186,17 @@ int main(){
             last_cmd_success = parse(argc, argv, 0, last_cmd_success, jobs);
         }
 
-        for (int i=0; i<argc; i++){
-            if (!is_env[i]){free(argv[i]);}
+        for (int i = 0; _argv[i]; i++){
+            if (!is_env[i]) free(_argv[i]);
         }
-        free(argv);
+        free(_argv);
         free(is_env);
 
         dup2(stdin_fd, 0);
         dup2(stdout_fd, 1);
         dup2(stderr_fd, 2);
+
+        if (getpid() != parent_pid) exit(3);
     }
     return 0;
 }

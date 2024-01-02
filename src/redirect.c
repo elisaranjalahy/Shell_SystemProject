@@ -1,5 +1,26 @@
 #include "utils.h"
 
+
+char** parse_pipes(char** argv){
+    int i = 0; int pipe_fd[2];
+    while (argv[i] && argv[i++][0] != '|');
+    if (pipe(pipe_fd) < 0) return NULL;
+
+    if (argv[i]){
+        if (fork()) {
+            close(pipe_fd[1]);
+            dup2(pipe_fd[0], 0);
+            return parse_pipes(argv + i);
+        } else {
+            close(pipe_fd[0]);
+            dup2(pipe_fd[1], 1);
+            for (int j = i-1; argv[j]; free(argv[j++]));
+            argv[i-1] = NULL;
+        }
+    }
+    return argv;
+}
+
 int mkrdr(int new_fd, const char* filename, int flags, mode_t mode){
     int fd;
     if ((fd = open(filename, flags, mode)) < 0){
