@@ -57,6 +57,8 @@ char** my_to_argv(char* query){
     return NULL;
 }
 
+
+
 //////
 //          Jobs
 //////
@@ -202,9 +204,8 @@ const char* getCommand(job_list *jobList, int pid){
         }
         acc = acc->next;
     }
-    if (acc == NULL){
-        return NULL;
-    }
+    return NULL;
+    
 }
 
 //////

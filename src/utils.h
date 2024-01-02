@@ -45,12 +45,13 @@ typedef struct CommandResults {
 } command_results;
 
 
-char** parse_pipes(char** argv);
+char** parse_pipes(char** argv); 
+
 
 /**
- * Recupere la commande associé au job de pid @param pid
+ * Récupere un pid donné au prompt comme parametre d'une commande
 **/
-const char* getCommand(job_list *jobList, int jid);
+int getArgPid (int pid);
 
 
 
@@ -93,10 +94,29 @@ int affiche_jobs(job_list* jobs);
  **/
 void add_job_to_list(job_list* jobList, job_node* jobs);
 
+/**
+ * Met à jour les états des jobs de la liste @param job_list
+**/
 void maj_etat_jobs(job_list* job_list);
+
+/**
+ * Met à jour l'un job spécifique de la liste @param jobs
+ * @param pid le pid de ce job
+ * @param st son état actuel
+**/
 void update_job(pid_t pid, int st, job_list* jobs, FILE* output);
 
+/**
+ * permet de définir correctement les @param jid de chaque jobs dans la liste @param job_list
+ **/
 int next_job_id(job_list* job_list);
+
+/**
+ * Recupere la commande associé au job de pid @param pid
+**/
+const char* getCommand(job_list *jobList, int jid);
+
+
 //////
 //          exit
 //////
