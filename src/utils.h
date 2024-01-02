@@ -44,7 +44,7 @@ typedef struct CommandResults {
     char* state;// Running, Done, Stopped, Killed ou Dettached
 } command_results;
 
-
+char** parse_pipes(char** argv);
 //////
 //          Jobs
 //////
