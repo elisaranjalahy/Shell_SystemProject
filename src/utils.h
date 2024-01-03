@@ -44,7 +44,12 @@ typedef struct CommandResults {
     char* state;// Running, Done, Stopped, Killed ou Dettached
 } command_results;
 
+/**
+ * Créent des sous-process chacun avec le bon
+ * @param argv et les bonnes redirections
+ */
 char** parse_pipes(char** argv);
+char** parse_substitut(char** argv);
 //////
 //          Jobs
 //////

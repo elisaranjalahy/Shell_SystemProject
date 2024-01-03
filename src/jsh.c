@@ -99,6 +99,14 @@ int main(){
 
     pid_t parent_pid = getpid();
 
+    //struct sigaction sa = {0};
+    //sa.sa_handler = SIG_IGN;
+
+    //sigaction(SIGINT, &sa, NULL);
+    //sigaction(SIGTERM, &sa, NULL);
+    //sigaction(SIGTTIN, &sa, NULL);
+    //sigaction(SIGTTOU, &sa, NULL);
+    //sigaction(SIGTSTP, &sa, NULL);
 
     int stdin_fd = dup(0);
     int stdout_fd = dup(1);
@@ -140,13 +148,15 @@ int main(){
             if (_argv[i][0] == '$'){
                 k = getenv(_argv[i]+1);
                 if (k){
+                    free(_argv[i]);
                     _argv[i] = k;
                     is_env[i]++;
                 }
             }
         }
 
-        char** argv = parse_pipes(_argv);
+        char** __argv = parse_substitut(_argv);
+        char** argv = parse_pipes(__argv);
 
         if (redirections(argv)){
             for(int i = 0; i < argvlen(argv); free(argv[i++]));
