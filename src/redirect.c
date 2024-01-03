@@ -1,12 +1,67 @@
 #include "utils.h"
 
+// On implémente ici le fonctionnement de bash explicité sur
+// https://tldp.org/LDP/abs/html/process-sub.html
+char** parse_substitut(char** argv){
+    int i = 0; int depth = 0; int pipe_fd[2];
+
+    sub:
+    while (argv[i] && strcmp(argv[i], "<(")){i++;}
+
+    if (argv[i]){
+        int j = i+1;
+        pid_t r;
+        for (;argv[j]; j++){
+            if (strcmp(")", argv[j]) == 0 && !depth){
+                if (pipe(pipe_fd) < 0){
+                    perror("pipe");
+                    return NULL;
+                }
+
+                if ((r=fork())){
+                    close(pipe_fd[1]);
+                    char* fd_str = utos(pipe_fd[0]);
+
+                    free(argv[i]);
+                    argv[i] = calloc(PATH_MAX, sizeof(char));
+                    strcat(strcat(argv[i], "/dev/fd/"), fd_str);
+                    free(fd_str);
+
+                    int k = 1;
+                    for (int m = i+1; m<=j; free(argv[m++]));
+                    for (; argv[j+k]; k++){
+                        argv[i+k] = argv[j+k];
+                    }
+                    argv[i+k] = NULL;
+                    i += 1;
+                    goto sub;
+
+                } else {
+                    close(pipe_fd[0]);
+                    dup2(pipe_fd[1], 1);
+                    for (int k = j; argv[k]; free(argv[k++]));
+                    argv[j] = NULL;
+
+                    return parse_substitut(argv+i+1);
+                }
+
+            } else if (strcmp(")", argv[j]) == 0) {
+                depth--;
+            } else if (strcmp("<(", argv[j]) == 0){
+                depth++;
+            }
+        }
+    }
+    return argv;;
+}
+
 
 char** parse_pipes(char** argv){
     int i = 0; int pipe_fd[2];
     while (argv[i] && argv[i++][0] != '|');
-    if (pipe(pipe_fd) < 0) return NULL;
 
     if (argv[i]){
+        if (pipe(pipe_fd) < 0) return NULL;
         if (fork()) {
             close(pipe_fd[1]);
             dup2(pipe_fd[0], 0);

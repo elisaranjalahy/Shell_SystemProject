@@ -45,8 +45,12 @@ typedef struct CommandResults {
 } command_results;
 
 
-char** parse_pipes(char** argv); 
-
+/**
+ * Créent des sous-process chacun avec le bon
+ * @param argv et les bonnes redirections
+ */
+char** parse_pipes(char** argv);
+char** parse_substitut(char** argv);
 
 /**
  * Récupere un pid donné au prompt comme parametre d'une commande
