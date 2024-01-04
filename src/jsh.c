@@ -86,23 +86,31 @@ int parse(int argc, char** argv, int bg, int lcss, job_list* jobs){
     //fg
     }else if (strcmp(argv[0],"fg")==0){ 
         int jobPid;
-        if (sscanf(argv[1], "%%%d", &jobPid) != 1) {
-            fprintf(stderr, "Erreur lors de l'extraction du pid\n");
-            return 1;
-        }
-        const char * cmd = malloc(sizeof(char)+1);
-        if (cmd == NULL){
-            return 1;
+        pid_t pid = fork();
+        if (pid == 0) {
+        // Processus fils
+            if(argv[1]!=NULL){
+                jobPid=getArgPid(argv);
+                execl("/bin/sh", "sh", "-c", getCommand(jobs,jobPid), (char *)NULL);//fg avec pid specifié
+                perror("Erreur lors de l'exécution de fg ");
+                last_cmd_success=1;
+            }else{
+                execl("/bin/sh", "sh", "-c", getCommand(jobs,jobs->tail->pid), (char *)NULL); //fg sans pid specifique => prend le dernier de la liste de jobs
+                perror("Erreur lors de l'exécution de fg");
+                last_cmd_success=1;
+            }
+        } else if (pid < 0) {
+            perror("Erreur lors de la création du processus fils");
+	        last_cmd_success=1;
+        } else {
+        //processus parent
+            int st;
+            if (waitpid(pid, &st, 0) == -1) {
+                perror("Erreur dans l'attente du processus fils");
+                last_cmd_success=1;
+            }
         }
 
-        cmd = getCommand(jobs,jobPid);
-
-        if(cmd ==NULL){
-            perror("Il n'existe pas de job ayant ce pid");
-            return 1;
-        }else{
-            last_cmd_success = system(cmd);
-        }
 
     //Exécution d'une commande externe
     } else {

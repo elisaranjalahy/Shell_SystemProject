@@ -208,6 +208,17 @@ const char* getCommand(job_list *jobList, int pid){
     
 }
 
+
+int getArgPid (char ** argv){
+    int jobPid;
+    if (sscanf(argv[1], "%%%d", &jobPid) != 1) {
+        fprintf(stderr, "Erreur lors de l'extraction du pid\n");
+        return 1;
+    }
+    return jobPid;
+}
+
+
 //////
 //          exit
 //////

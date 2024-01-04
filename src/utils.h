@@ -52,11 +52,6 @@ typedef struct CommandResults {
 char** parse_pipes(char** argv);
 char** parse_substitut(char** argv);
 
-/**
- * Récupere un pid donné au prompt comme parametre d'une commande
-**/
-int getArgPid (int pid);
-
 
 
 //////
@@ -118,8 +113,13 @@ int next_job_id(job_list* job_list);
 /**
  * Recupere la commande associé au job de pid @param pid
 **/
-const char* getCommand(job_list *jobList, int jid);
+const char* getCommand(job_list *jobList, int pid);
 
+/**
+ * recupere le jid du jobs de pid : pid
+ * exemple getJid extrait recupere le jid de pid dans la commande "jobs -t %pid"
+ **/
+int getArgPid (char ** argv);
 
 //////
 //          exit

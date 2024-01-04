@@ -2,13 +2,13 @@
 
 int execute_ext_cmd(char **query, job_list* jobs) {
 
-    //command_results tab; //tab[0 contient la valeur de succes de l'appel, tab[1] contient le pid
-
     pid_t pid = fork();
     if (pid == 0) {
         // Processus fils
-        //redirections(query);
+        //redirections(query); 
+
         execvp(query[0],query);
+
         perror("Erreur lors de l'exécution de la commande");//si execvp s'est bien déroulé bien, on atteint pas ce perror
         exit(EXIT_FAILURE);
     } else if (pid < 0) {
@@ -29,12 +29,10 @@ int execute_ext_cmd(char **query, job_list* jobs) {
         update_job(npid, st, jobs, stderr);
         if (WIFEXITED(st)) {
             // vraie si la commande externe s'est terminée correctement
-            return WEXITSTATUS(st); // et renvoie le code de sortie du processus
-            //tab.pid = pid;
-            //return tab;
+            return WEXITSTATUS(st); 
+            
         } else {
-            // La commande ne s'est pas terminée normalement
-            //tab.status = 1; // indique une erreur
+            
             return 1;
         }
     }
