@@ -91,11 +91,11 @@ int parse(int argc, char** argv, int bg, int lcss, job_list* jobs){
         // Processus fils
             if(argv[1]!=NULL){
                 jobPid=getArgPid(argv);
-                execl("/bin/sh", "sh", "-c", getCommand(jobs,jobPid), (char *)NULL);//fg avec pid specifié
+                execl("/bin/sh", "sh", "-c", getCommand(jobs,jobPid), NULL);//fg avec pid specifié
                 perror("Erreur lors de l'exécution de fg ");
                 last_cmd_success=1;
             }else{
-                execl("/bin/sh", "sh", "-c", getCommand(jobs,jobs->tail->pid), (char *)NULL); //fg sans pid specifique => prend le dernier de la liste de jobs
+                execl("/bin/sh", "sh", "-c", getCommand(jobs,jobs->tail->pid), NULL); //fg sans pid specifique => prend le dernier de la liste de jobs
                 perror("Erreur lors de l'exécution de fg");
                 last_cmd_success=1;
             }
