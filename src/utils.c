@@ -58,7 +58,6 @@ char** my_to_argv(char* query){
 }
 
 
-
 //////
 //          Jobs
 //////
@@ -195,27 +194,42 @@ int next_job_id(job_list* job_list){
     return tor;
 }
 
-const char* getCommand(job_list *jobList, int pid){
-    job_node* acc = jobList->head;//pour parcourir la liste sans changer le vrai pointeur head
-    while (acc != NULL){ 
 
-        if (acc->pid == pid){
-            return acc->command;
+
+
+job_node* getJob(int jobPid,job_list *jobs){
+    job_node* acc = jobs->head;
+    while (acc != NULL){ 
+        if (acc->pid == jobPid){
+            return acc;
         }
         acc = acc->next;
     }
+    perror("Il n'existe pas de job ayant ce pid");
     return NULL;
-    
 }
 
 
-int getArgPid (char ** argv){
-    int jobPid;
-    if (sscanf(argv[1], "%%%d", &jobPid) != 1) {
+int getArgJid (char ** argv){
+    int jobJid;
+    
+    if (sscanf(argv[1], "%%%d", &jobJid) != 1) {
         fprintf(stderr, "Erreur lors de l'extraction du pid\n");
         return 1;
     }
-    return jobPid;
+    return jobJid;
+}
+
+int getPid(int jid,job_list *jobs){
+    job_node* acc = jobs->head;
+    while (acc != NULL){ 
+        if (acc->jid == jid){
+            return acc->pid;
+        }
+        acc = acc->next;
+    }
+    perror ("Ce PID n'existe pas");
+    return 1;
 }
 
 
@@ -232,4 +246,67 @@ bool exit_possible(job_list* jobs){
         acc = acc->next;
     }
     return true;
+}
+
+//////
+//          fg
+//////
+
+int foreground(char** argv, job_list* jobs){
+    int st;
+    
+    if(argv[1]!=NULL){
+        
+        int jobJid=getArgJid(argv);
+        int jobPid=getPid(jobJid,jobs);
+        job_node* j=getJob(jobPid,jobs);
+        if(j!=NULL){
+            if(strcmp(j->state,"Killed")==0){
+                perror("Aucun processus en arrière-plan.\n");
+                return 1;
+            }
+            if (kill(jobPid, SIGCONT) == -1) {
+                perror("Erreur lors de l'envoi du signal SIGCONT");
+                return 1;
+            }
+                
+            j->fg=0;
+            j->state="Running";
+            
+            tcsetpgrp(STDIN_FILENO, jobPid);//place le job à l'avant plan/comme celui controlant le terminal
+            waitpid(jobPid, &st, WUNTRACED);
+            j->fg=1;
+            tcsetpgrp(STDIN_FILENO, getpgrp());// réinitialise le groupe de processus de contrôle du terminal
+            update_job(jobPid,st,jobs,stderr);
+        }
+
+    } else if (jobs->tail == NULL || strcmp(jobs->tail->state,"Killed")==0){
+            perror("Aucun processus en arrière-plan.\n");
+            return 1;
+        
+    }else{
+        if(jobs->tail !=NULL){
+            job_node* j=getJob(jobs->tail->pid,jobs);
+
+            if(strcmp(j->state,"Killed")==0){
+                perror("Aucun processus en arrière-plan.\n");
+                return 1;
+            }
+
+            if (kill(jobs->tail->pid, SIGCONT) == -1) {
+                perror("Erreur lors de l'envoi du signal SIGCONT");
+                return 1;
+            }
+            
+            j->fg=0;
+            j->state="Running";
+
+            tcsetpgrp(STDIN_FILENO,jobs->tail->pid);//place le job à l'avant plan/comme celui controlant le terminal
+            waitpid(jobs->tail->pid, &st, WUNTRACED);
+            tcsetpgrp(STDIN_FILENO, getpgrp());// réinitialise le groupe de processus de contrôle du terminal
+            update_job(jobs->tail->pid,st,jobs,stderr);
+        }
+        
+    }
+    return 0;
 }

@@ -1,5 +1,7 @@
 #include "utils.h"
 
+
+
 char* mkprompt(job_list* jobs, char* cur_path){
 
     // Allocation de l'espace stockant le prompt
@@ -85,33 +87,8 @@ int parse(int argc, char** argv, int bg, int lcss, job_list* jobs){
 
     //fg
     }else if (strcmp(argv[0],"fg")==0){ 
-        int jobPid;
-        pid_t pid = fork();
-        if (pid == 0) {
-        // Processus fils
-            if(argv[1]!=NULL){
-                jobPid=getArgPid(argv);
-                execl("/bin/sh", "sh", "-c", getCommand(jobs,jobPid), NULL);//fg avec pid specifié
-                perror("Erreur lors de l'exécution de fg ");
-                last_cmd_success=1;
-            }else{
-                execl("/bin/sh", "sh", "-c", getCommand(jobs,jobs->tail->pid), NULL); //fg sans pid specifique => prend le dernier de la liste de jobs
-                perror("Erreur lors de l'exécution de fg");
-                last_cmd_success=1;
-            }
-        } else if (pid < 0) {
-            perror("Erreur lors de la création du processus fils");
-	        last_cmd_success=1;
-        } else {
-        //processus parent
-            int st;
-            if (waitpid(pid, &st, 0) == -1) {
-                perror("Erreur dans l'attente du processus fils");
-                last_cmd_success=1;
-            }
-        }
-
-
+        last_cmd_success=foreground(argv,jobs);
+    
     //Exécution d'une commande externe
     } else {
         last_cmd_success = execute_ext_cmd(argv, jobs);
@@ -119,7 +96,10 @@ int parse(int argc, char** argv, int bg, int lcss, job_list* jobs){
     return last_cmd_success;
 }
 
+
+
 int main(){
+    
     job_list* jobs = new_job_list();
     rl_outstream = stderr;  // Affichage du prompt sur la sortie erreur
 
@@ -128,14 +108,24 @@ int main(){
 
     pid_t parent_pid = getpid();
 
-    //struct sigaction sa = {0};
-    //sa.sa_handler = SIG_IGN;
+    /*struct sigaction sa;
+    sa.sa_handler = SIG_IGN;
 
-    //sigaction(SIGINT, &sa, NULL);
-    //sigaction(SIGTERM, &sa, NULL);
-    //sigaction(SIGTTIN, &sa, NULL);
-    //sigaction(SIGTTOU, &sa, NULL);
-    //sigaction(SIGTSTP, &sa, NULL);
+    sigaction(SIGINT, &sa, NULL);
+    sigaction(SIGTERM, &sa, NULL);
+    sigaction(SIGTTIN, &sa, NULL);
+    sigaction(SIGTTOU, &sa, NULL);
+    sigaction(SIGTSTP, &sa, NULL);*/
+
+    
+    signal(SIGTERM, SIG_IGN);  
+    signal(SIGTTIN, SIG_IGN); 
+    signal(SIGTTOU, SIG_IGN);  
+    signal(SIGQUIT, SIG_IGN);  
+    signal(SIGTSTP, SIG_IGN); 
+    //signal(SIGINT,SIG_IGN);
+   
+    
 
     int stdin_fd = dup(0);
     int stdout_fd = dup(1);

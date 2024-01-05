@@ -113,15 +113,26 @@ int next_job_id(job_list* job_list);
 /**
  * Recupere la commande associé au job de pid @param pid
 **/
-const char* getCommand(job_list *jobList, int pid);
+int getCommand(job_list *jobList, int jid);
 
 /**
  * recupere le jid du jobs de pid : pid
  * exemple getJid extrait recupere le jid de pid dans la commande "jobs -t %pid"
  **/
-int getArgPid (char ** argv);
+int getArgJid (char ** argv);
+
+int getPid(int jid,job_list *jobs);
+
+job_node* getJob(int jobPid,job_list *jobs);
+
 
 //////
 //          exit
 //////
 bool exit_possible(job_list* jobLits);
+
+
+//////
+//          fg
+//////
+int foreground(char** argv, job_list* jobs);
