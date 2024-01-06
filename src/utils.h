@@ -13,13 +13,21 @@
 char* utos(unsigned int n);
 
 /**
- * Returns the length of a string ignoring
- * the utilities characters.
+ * Renvoie la longueur d'un string
+ * en ignorant les changements de couleur
  *
- * @param str an unsigned integer
- * @return the printed length of str
+ * @param str le stirng à mesurer
+ * @return la longueur du string
  */
 int my_strlen(const char* str);
+
+
+/**
+ * @param str une chaine de charactères
+ * @return 1 ssi le string représente un entier positif
+ * 0 sinon.
+*/
+int is_numerical(char* str);
 
 /**
  * Transforme l'entrée en un char* à la

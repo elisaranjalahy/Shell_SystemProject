@@ -21,7 +21,6 @@ char* utos(unsigned int n){
 }
 
 int my_strlen(const char* str){
-    // Careful, this should only be used on properly formatted string.
     int j = 0;
     for(int i=0;;i++){
         if (str[i] == '\0'){return i-j;}
@@ -57,7 +56,12 @@ char** my_to_argv(char* query){
     return NULL;
 }
 
-
+int is_numerical(char* str){
+    for(int i = 0; *(str+i); i++){
+        if (i[str] < 48 || i[str] > 57){return 0;}
+    }
+    return 1;
+}
 //////
 //          Jobs
 //////
@@ -96,7 +100,7 @@ job_node* new_job_node(char **query, pid_t pid, char* st, int jid, int fg){
 int affiche_jobs(job_list* jobs){
     job_node* acc = jobs->head;//pour parcourir la liste sans changer le vrai pointeur head
     maj_etat_jobs(jobs);
-    while (acc != NULL){ //&& acc->state[0] == 'R') {
+    while (acc != NULL){
         if (acc->jid > 0){
             printf("[%d]\t%d\t%s\t%s\n", acc->jid, acc->pid,acc->state, acc->command);
         }
