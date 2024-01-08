@@ -5,8 +5,8 @@ int execute_ext_cmd(char **query, job_list* jobs) {
     pid_t pid = fork();
     if (pid == 0) {
         // Processus fils
-        //redirections(query); 
-        
+        setup_signals(SIG_DFL);
+
         execvp(query[0],query);
 
         perror("Erreur lors de l'exécution de la commande");//si execvp s'est bien déroulé bien, on atteint pas ce perror
@@ -26,15 +26,13 @@ int execute_ext_cmd(char **query, job_list* jobs) {
             goto bac;
         }
 
-        update_job(npid, st, jobs, stderr);
+        update_job(pid, st, jobs, stderr);
+        if (!kill(pid, 0) && jobs->main_pid != getpid()){goto bac;}
         if (WIFEXITED(st)) {
             // vraie si la commande externe s'est terminée correctement
-            return WEXITSTATUS(st); 
-            
+            return WEXITSTATUS(st);
         } else {
-            
             return 1;
         }
     }
-
 }

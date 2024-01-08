@@ -62,6 +62,18 @@ int is_numerical(char* str){
     }
     return 1;
 }
+
+void setup_signals(void(*fun)(int)){
+    struct sigaction sa = {0};
+    sa.sa_handler = fun;
+
+    sigaction(SIGINT, &sa, NULL);
+    sigaction(SIGTERM, &sa, NULL);
+    sigaction(SIGTTIN, &sa, NULL);
+    sigaction(SIGTTOU, &sa, NULL);
+    sigaction(SIGTSTP, &sa, NULL);
+}
+
 //////
 //          Jobs
 //////
@@ -69,6 +81,7 @@ int is_numerical(char* str){
 job_list* new_job_list(){
     job_list* list = malloc(sizeof(job_list));
     list->length = 0;
+    list->main_pid = getpid();
     list->head = NULL;
     list->tail = NULL;
     return list;
@@ -158,10 +171,11 @@ void maj_etat_jobs(job_list* jobs) {
 
 void update_job(pid_t pid, int st, job_list* jobs, FILE* output){
     job_node* acc = jobs->head;
-    int i = 1;
+    int i = 1; int k = 1 - kill(-pid, 0);
+    // k = 1 si le job a au moints un fils actif, 0 sinon
     while (acc != NULL){
         if (acc->pid == pid){
-            if (WIFEXITED(st)) {
+            if (WIFEXITED(st) && k) {
                 acc->state="Done";
             } else if (WIFSIGNALED(st)) {
                 acc->state="Killed";
@@ -171,10 +185,12 @@ void update_job(pid_t pid, int st, job_list* jobs, FILE* output){
             } else if (WIFCONTINUED(st)) {
                 acc->state="Running";
                 jobs->length ++;
+            } else if (k) {
+                acc->state="Detached";
             } else {
                 perror("waitpid");
             }
-            if (!acc->fg || acc->state[0] >= 'K') fprintf(output, "[%d]\t%d\t%s\t%s\n", acc->jid, (int)acc->pid, acc->state, acc->command);
+            if (jobs->main_pid == getpid() && (!acc->fg || acc->state[0] >= 'K')) fprintf(output, "[%d]\t%d\t%s\t%s\n", acc->jid, (int)acc->pid, acc->state, acc->command);
             if (acc->state[0] < 'R') acc->jid = -1;
             jobs->length--;
             break;
@@ -198,12 +214,9 @@ int next_job_id(job_list* job_list){
     return tor;
 }
 
-
-
-
 job_node* getJob(int jobPid,job_list *jobs){
     job_node* acc = jobs->head;
-    while (acc != NULL){ 
+    while (acc != NULL){
         if (acc->pid == jobPid){
             return acc;
         }
@@ -213,10 +226,9 @@ job_node* getJob(int jobPid,job_list *jobs){
     return NULL;
 }
 
-
 int getArgJid (char ** argv){
     int jobJid;
-    
+
     if (sscanf(argv[1], "%%%d", &jobJid) != 1) {
         fprintf(stderr, "Erreur lors de l'extraction du pid\n");
         return 1;
@@ -226,7 +238,7 @@ int getArgJid (char ** argv){
 
 int getPid(int jid,job_list *jobs){
     job_node* acc = jobs->head;
-    while (acc != NULL){ 
+    while (acc != NULL){
         if (acc->jid == jid){
             return acc->pid;
         }
@@ -258,11 +270,12 @@ bool exit_possible(job_list* jobs){
 
 int foreground(char** argv, job_list* jobs){
     int st;
-    
+
     if(argv[1]!=NULL){
-        
+
         int jobJid=getArgJid(argv);
         int jobPid=getPid(jobJid,jobs);
+        printf("On bosse avec le pid %d et le jobId %d\n", jobPid, jobJid);
         job_node* j=getJob(jobPid,jobs);
         if(j!=NULL){
             if(strcmp(j->state,"Killed")==0){
@@ -273,10 +286,10 @@ int foreground(char** argv, job_list* jobs){
                 perror("Erreur lors de l'envoi du signal SIGCONT");
                 return 1;
             }
-                
+
             j->fg=0;
             j->state="Running";
-            
+
             tcsetpgrp(STDIN_FILENO, jobPid);//place le job à l'avant plan/comme celui controlant le terminal
             waitpid(jobPid, &st, WUNTRACED);
             j->fg=1;
@@ -287,7 +300,7 @@ int foreground(char** argv, job_list* jobs){
     } else if (jobs->tail == NULL || strcmp(jobs->tail->state,"Killed")==0){
             perror("Aucun processus en arrière-plan.\n");
             return 1;
-        
+
     }else{
         if(jobs->tail !=NULL){
             job_node* j=getJob(jobs->tail->pid,jobs);
@@ -301,7 +314,7 @@ int foreground(char** argv, job_list* jobs){
                 perror("Erreur lors de l'envoi du signal SIGCONT");
                 return 1;
             }
-            
+
             j->fg=0;
             j->state="Running";
 
@@ -310,7 +323,27 @@ int foreground(char** argv, job_list* jobs){
             tcsetpgrp(STDIN_FILENO, getpgrp());// réinitialise le groupe de processus de contrôle du terminal
             update_job(jobs->tail->pid,st,jobs,stderr);
         }
-        
+
     }
+    return 0;
+}
+
+
+int background(char** argv, job_list* jobs){
+    if (argv[2]) {
+        fprintf(stderr, "bg: Invalid number of arguments\n");
+        tuto_bg:
+        fprintf(stderr, "use: bg %cjobId\n", '%');
+        return 1;
+    }
+    if (argv[1][0] != '%' || !is_numerical(1+1[argv])){goto tuto_bg;}
+    int jid = atoi(1+1[argv]);
+    pid_t pgid = getPid(jid, jobs);
+
+    if (kill(-pgid, SIGCONT) < 0){
+        perror("kill");
+        return 1;
+    }
+
     return 0;
 }

@@ -60,7 +60,7 @@ typedef struct CommandResults {
 char** parse_pipes(char** argv);
 char** parse_substitut(char** argv);
 
-
+void setup_signals(void(*fun)(int));
 
 //////
 //          Jobs
@@ -144,3 +144,4 @@ bool exit_possible(job_list* jobLits);
 //          fg
 //////
 int foreground(char** argv, job_list* jobs);
+int background(char** argv, job_list* jobs);

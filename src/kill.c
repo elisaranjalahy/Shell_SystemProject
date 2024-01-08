@@ -40,6 +40,5 @@ int my_kill(int argc, char** argv, job_list* jobs){
         perror("kill");
         return 1;
     }
-
     return 0;
 }

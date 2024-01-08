@@ -41,6 +41,7 @@ int parse(int argc, char** argv, int bg, int lcss, job_list* jobs){
             job_node* job = new_job_node(argv, pid, "Running", next_job_id(jobs), 0);
             add_job_to_list(jobs, job);
         } else {
+            setup_signals(SIG_DFL);
             setpgid(0, getpid());
             exit(parse(argc, argv, 0, last_cmd_success, jobs));
         }
@@ -86,9 +87,12 @@ int parse(int argc, char** argv, int bg, int lcss, job_list* jobs){
         affiche_jobs(jobs);
 
     //fg
-    }else if (strcmp(argv[0],"fg")==0){ 
-        last_cmd_success=foreground(argv,jobs);
-    
+    }else if (strcmp(argv[0],"fg")==0){
+        last_cmd_success = foreground(argv, jobs);
+
+    }else if (strcmp(argv[0],"bg")==0){
+        last_cmd_success = background(argv, jobs);
+
     //Exécution d'une commande externe
     } else {
         last_cmd_success = execute_ext_cmd(argv, jobs);
@@ -99,8 +103,9 @@ int parse(int argc, char** argv, int bg, int lcss, job_list* jobs){
 
 
 int main(){
-    
+
     job_list* jobs = new_job_list();
+
     rl_outstream = stderr;  // Affichage du prompt sur la sortie erreur
 
     int last_cmd_success = 0;
@@ -108,24 +113,7 @@ int main(){
 
     pid_t parent_pid = getpid();
 
-    /*struct sigaction sa;
-    sa.sa_handler = SIG_IGN;
-
-    sigaction(SIGINT, &sa, NULL);
-    sigaction(SIGTERM, &sa, NULL);
-    sigaction(SIGTTIN, &sa, NULL);
-    sigaction(SIGTTOU, &sa, NULL);
-    sigaction(SIGTSTP, &sa, NULL);*/
-
-    
-    signal(SIGTERM, SIG_IGN);  
-    signal(SIGTTIN, SIG_IGN); 
-    signal(SIGTTOU, SIG_IGN);  
-    signal(SIGQUIT, SIG_IGN);  
-    signal(SIGTSTP, SIG_IGN); 
-    //signal(SIGINT,SIG_IGN);
-   
-    
+    setup_signals(SIG_IGN);
 
     int stdin_fd = dup(0);
     int stdout_fd = dup(1);

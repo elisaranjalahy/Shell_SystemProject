@@ -29,6 +29,7 @@ typedef struct JobNode {
 
 typedef struct JobList {
     int length;
+    int main_pid;
     job_node* head;
     job_node* tail;
 } job_list;
