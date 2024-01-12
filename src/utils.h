@@ -73,7 +73,7 @@ void setup_signals(void(*fun)(int));
  * @param args prend la commande externe et ses arguments/options donnés au shell
  * @return 0 si cette commande s'est exécutée correctement, sinon une autre valeur indiquant une erreur
  */
-int execute_ext_cmd(char **args, job_list* jobs);
+int execute_ext_cmd(char **args, job_list* jobs, int fg);
 
 /**
  * initialise et renvoie un nouveau job à chaque commande

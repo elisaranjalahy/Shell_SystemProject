@@ -275,7 +275,7 @@ int foreground(char** argv, job_list* jobs){
 
         int jobJid=getArgJid(argv);
         int jobPid=getPid(jobJid,jobs);
-        printf("On bosse avec le pid %d et le jobId %d\n", jobPid, jobJid);
+
         job_node* j=getJob(jobPid,jobs);
         if(j!=NULL){
             if(strcmp(j->state,"Killed")==0){
@@ -287,13 +287,13 @@ int foreground(char** argv, job_list* jobs){
                 return 1;
             }
 
-            j->fg=0;
+            j->fg=1;
             j->state="Running";
 
             tcsetpgrp(STDIN_FILENO, jobPid);//place le job à l'avant plan/comme celui controlant le terminal
             waitpid(jobPid, &st, WUNTRACED);
-            j->fg=1;
-            tcsetpgrp(STDIN_FILENO, getpgrp());// réinitialise le groupe de processus de contrôle du terminal
+            j->fg=0;
+            tcsetpgrp(STDIN_FILENO, jobs->main_pid);// réinitialise le groupe de processus de contrôle du terminal
             update_job(jobPid,st,jobs,stderr);
         }
 
