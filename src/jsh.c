@@ -34,20 +34,9 @@ char* mkprompt(job_list* jobs, char* cur_path){
 
 int parse(int argc, char** argv, int bg, int lcss, job_list* jobs){
     int last_cmd_success = lcss;
-    int pid;
-
-    if (bg) {
-        if ((pid = fork())){
-            job_node* job = new_job_node(argv, pid, "Running", next_job_id(jobs), 0);
-            add_job_to_list(jobs, job);
-        } else {
-            setup_signals(SIG_DFL);
-            setpgid(0, getpid());
-            exit(parse(argc, argv, 0, last_cmd_success, jobs));
-        }
 
     //cd
-    } else if (strcmp(argv[0], "cd") == 0){
+    if (strcmp(argv[0], "cd") == 0){
         last_cmd_success = my_cd(getenv("PWD"), argv + 1);
 
     //kill
@@ -95,7 +84,7 @@ int parse(int argc, char** argv, int bg, int lcss, job_list* jobs){
 
     //Exécution d'une commande externe
     } else {
-        last_cmd_success = execute_ext_cmd(argv, jobs);
+        last_cmd_success = execute_ext_cmd(argv, jobs, 1-bg);
     }
     return last_cmd_success;
 }
