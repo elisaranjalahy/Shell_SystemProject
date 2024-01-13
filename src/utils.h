@@ -139,6 +139,8 @@ int getPid(int jid,job_list *jobs);
 
 job_node* getJob(int jobPid,job_list *jobs);
 
+void affiche_Jobs_arbo(char *jsh_pidString, job_list * jobs, int tab);
+
 
 //////
 //          exit

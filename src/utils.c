@@ -251,6 +251,48 @@ int getPid(int jid,job_list *jobs){
     return 1;
 }
 
+void affiche_Jobs_arbo(char* jsh_pidString, job_list* jobs,int tab){ // tab pour le calcul de l'arbre
+    DIR *dir;
+    struct dirent *d;
+    dir = opendir("/proc");
+    if (dir != NULL) {
+        while ((d = readdir(dir)) && d != NULL) {
+            if (atoi(d->d_name) > 0) { //conversion car nom des repertoire sont des string
+                char path[269];
+                snprintf(path, sizeof(path), "/proc/%s/status", d->d_name); //acceder aux info du fichier
+                FILE *file = fopen(path, "r");//ouverture du fichoer en lecture
+                if (file == NULL) {
+                    perror("erreu à l'ouverture");
+                    exit(1);
+                }
+
+                    char ppid[10]; //pour stocker le ppid trouvé
+                    char buf[256]; //pour stocké ce qui est lu
+                    char pid[10];
+
+                   
+                    while (fgets(buf, sizeof(buf),file)) {
+                        if (sscanf(buf, "PPid:\t%s", ppid) == 1) { //on cherche dans but une ligne ayant ce debut de motif (et alors on aura le pid stocké dans ppid)
+                            sscanf(buf, "Pid:\t%s", pid);
+                            break;
+                        }
+                    }
+                    fclose(file);
+                    if (strcmp(ppid, jsh_pidString) == 0) {
+                        job_node * j = getJob(atoi(pid),jobs);
+                        for (int i = 0; i < tab; i++) {
+                                printf("  ");
+                         }
+                        printf("[%d]\t%d\t%s\t%s\n", j->jid, j->pid,j->state, j->command); //affiche le fils trouvé
+                        affiche_Jobs_arbo(pid,jobs, tab + 1);
+                    }
+                }
+            
+            }
+        }
+        closedir(dir);
+}
+
 
 //////
 //          exit
