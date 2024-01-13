@@ -250,6 +250,22 @@ int getPid(int jid,job_list *jobs){
     return 1;
 }
 
+char* getState(char* s){
+    if(strcmp(s,"R")==0){
+        return "Running";
+    }
+    if(strcmp(s,"T")==0){
+        return "Stopped";
+    }
+    if(strcmp(s,"S")==0){
+        return "Running";
+    }
+    if(strcmp(s,"K")==0){
+        return "Killed";
+    }
+    return "Done";
+}
+
 void affiche_Jobs_arbo(char* jsh_pidString, job_list* jobs,int tab){ // tab pour le calcul de l'arbre
     DIR *dir;
     struct dirent *d;
@@ -264,34 +280,33 @@ void affiche_Jobs_arbo(char* jsh_pidString, job_list* jobs,int tab){ // tab pour
                     perror("erreu à l'ouverture");
                     exit(1);
                 }
+                if (file != NULL) {
+                    char line[256];
+                    char name[256] = "";
+                    char pid[256] = "";
+                    char state[256] = "";
 
-                    char ppid[10]; //pour stocker le ppid trouvé
-                    char buf[256]; //pour stocké ce qui est lu
-                    char pid[10];
-
-                   
-                    while (fgets(buf, sizeof(buf),file)) {
-                        if (sscanf(buf, "PPid:\t%s", ppid) == 1) { //on cherche dans but une ligne ayant ce debut de motif (et alors on aura le pid stocké dans ppid)
-                            sscanf(buf, "Pid:\t%s", pid);
-                            break;
+                    while (fgets(line, sizeof(line), file)) {
+                        if (strncmp(line, "Name:", 5) == 0) {
+                            sscanf(line, "Name:\t%s", name);
+                        } else if (strncmp(line, "Pid:", 4) == 0) {
+                            sscanf(line, "Pid:\t%s", pid);
+                        } else if (strncmp(line, "State:", 6) == 0) {
+                            sscanf(line, "State:\t%s", state);
                         }
                     }
+
                     fclose(file);
-                    if (strcmp(ppid, jsh_pidString) == 0) {
-                        job_node * j = getJob(atoi(d->d_name),jobs);
-                        if(j!=NULL){
-                        for (int i = 0; i < tab; i++) {
-                                printf("  ");
-                         }
-                        printf("[%d]\t%d\t%s\t%s\n", j->jid, j->pid,j->state, j->command); //affiche le fils trouvé
-                        affiche_Jobs_arbo(pid,jobs, tab + 1);
-                        }
+                    if(getJob(atoi(pid),jobs)!=NULL){
+                        printf("[0] %s %s %s\n", pid, getState(state), name);
                     }
                 }
-            
+
             }
+            
         }
-        closedir(dir);
+    }
+    closedir(dir);
 }
 
 
