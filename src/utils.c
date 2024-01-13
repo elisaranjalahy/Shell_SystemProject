@@ -118,7 +118,7 @@ int affiche_jobs(job_list* jobs){
     job_node* acc = jobs->head;//pour parcourir la liste sans changer le vrai pointeur head
     maj_etat_jobs(jobs);
     while (acc != NULL){
-        if (acc->jid > 0){
+        if (acc->jid > 0 && acc->pid){
             printf("[%d]\t%d\t%s\t%s\n", acc->jid, acc->pid,acc->state, acc->command);
         }
         if (acc->state[0] < 'L'){acc->jid = -1;}
@@ -257,14 +257,7 @@ int getPid(int jid,job_list *jobs){
 //////
 
 bool exit_possible(job_list* jobs){
-    job_node* acc = jobs->head;
-    while (acc != NULL){
-        if(strcmp(acc->state,"Running")==0||strcmp(acc->state,"Stopped")==0){
-            return false;
-        }
-        acc = acc->next;
-    }
-    return true;
+    return (jobs->length == 0);
 }
 
 //////
