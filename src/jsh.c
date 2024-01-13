@@ -31,7 +31,6 @@ char* mkprompt(job_list* jobs, char* cur_path){
     return strcat(prompt, "\001\033[0m\002$ ");
 }
 
-
 int parse(int argc, char** argv, int bg, int lcss, job_list* jobs){
     int last_cmd_success = lcss;
 
@@ -98,7 +97,7 @@ int main(){
     rl_outstream = stderr;  // Affichage du prompt sur la sortie erreur
 
     int last_cmd_success = 0;
-    int argc;
+    int argc; int is_background;
 
     pid_t parent_pid = getpid();
 
@@ -112,6 +111,7 @@ int main(){
     for (;;){
         char* prompt = mkprompt(jobs, getenv("PWD"));
         char* query = readline(prompt);
+        is_background = 0;
 
         free(prompt);
 
@@ -151,6 +151,16 @@ int main(){
             }
         }
 
+        if (strcmp(_argv[argc-1], "&") == 0){
+            free(_argv[argc-1]);
+            _argv[argc-1] = NULL;
+            argc--;
+            is_background++;
+        }
+
+        job_node* job = new_job_node(_argv, 0, "Running", next_job_id(jobs), 1-is_background);
+        add_job_to_list(jobs, job);
+
         char** __argv = parse_substitut(_argv);
         char** argv = parse_pipes(__argv);
 
@@ -163,13 +173,8 @@ int main(){
 
         argc = argvlen(argv);
 
-        if (strcmp(argv[argc-1], "&") == 0){
-            free(argv[argc-1]);
-            argv[argc-1] = NULL;
-            last_cmd_success = parse(argc-1 , argv, 1, last_cmd_success, jobs);
-        } else {
-            last_cmd_success = parse(argc, argv, 0, last_cmd_success, jobs);
-        }
+        last_cmd_success = parse(argc, argv, is_background, last_cmd_success, jobs);
+
 
         for (int i = 0; _argv[i]; i++){
             if (!is_env[i]) free(_argv[i]);

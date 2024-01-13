@@ -1,13 +1,14 @@
 #include "utils.h"
 
 int execute_ext_cmd(char **query, job_list* jobs, int fg) {
-
+    jobs->length++;
     setup_signals(SIG_DFL);
     pid_t pid = fork();
     if (pid == 0) {
         // Processus fils
         setup_signals(SIG_DFL);
         setpgid(0, getpid());
+
         execvp(query[0],query);
 
         perror("Erreur lors de l'exécution de la commande");//si execvp s'est bien déroulé bien, on atteint pas ce perror
@@ -17,10 +18,10 @@ int execute_ext_cmd(char **query, job_list* jobs, int fg) {
 	    return 1;//tab;
     } else {
         setup_signals(SIG_IGN);
-        int st; int npid; //info sur l'état de sortie du processus pid
+        int st = 0; int npid; //info sur l'état de sortie du processus pid
 
-        job_node* job = new_job_node(query, pid, "Running", next_job_id(jobs), fg);
-        add_job_to_list(jobs, job);
+        jobs->tail->pid = pid;
+        if (!jobs->tail->fg) print_job(jobs->tail, stderr);
 
         bac:
         if (fg && (npid = waitpid(-1, &st, WUNTRACED | WCONTINUED)) != pid){
