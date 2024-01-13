@@ -87,6 +87,15 @@ job_list* new_job_list(){
     return list;
 }
 
+void purge_job_list(job_list* jobs){
+    job_node* job = jobs->head;
+    while (job && job->jid <= 0){
+        jobs->head = job->next;
+        free(job);
+        job = jobs->head;
+    }
+}
+
 job_node* new_job_node(char **query, pid_t pid, char* st, int jid, int fg){
     job_node* newJob = malloc(sizeof(job_node));
    if (newJob == NULL) {
@@ -114,11 +123,11 @@ void print_job(job_node* job, FILE* out){
     fprintf(out, "[%d]\t%d\t%s\t%s\n", job->jid, job->pid, job->state, job->command);
 }
 
-int affiche_jobs(job_list* jobs){
+int affiche_jobs(job_list* jobs, int debug){
     job_node* acc = jobs->head;//pour parcourir la liste sans changer le vrai pointeur head
     maj_etat_jobs(jobs);
     while (acc != NULL){
-        if (acc->jid > 0 && acc->pid){
+        if ((acc->jid > 0 && acc->pid) || debug){
             printf("[%d]\t%d\t%s\t%s\n", acc->jid, acc->pid,acc->state, acc->command);
         }
         if (acc->state[0] < 'L'){acc->jid = -1;}
@@ -174,47 +183,50 @@ void maj_etat_jobs(job_list* jobs) {
 
 void update_job(pid_t pid, int st, job_list* jobs, FILE* output){
     job_node* acc = jobs->head;
-    int i = 1; int k = 1 - kill(-pid, 0);
+    int k = 1 - kill(-pid, 0);
     // k = 1 si le job a au moints un fils actif, 0 sinon
     while (acc != NULL){
-        if (acc->pid == pid){
+        if (acc->pid == 0 || acc->pid == pid){
             if (WIFEXITED(st) && k) {
                 acc->state="Done";
             } else if (WIFSIGNALED(st)) {
                 acc->state="Killed";
             } else if (WIFSTOPPED(st)) {
                 acc->state="Stopped";
-                jobs->length ++;
+                if (acc->pid) jobs->length ++;
             } else if (WIFCONTINUED(st)) {
                 acc->state="Running";
-                jobs->length ++;
+                if (acc->pid) jobs->length ++;
             } else if (k) {
                 acc->state="Detached";
             } else {
                 perror("waitpid");
             }
-            if (!acc->fg || acc->state[0] >= 'K') print_job(acc, stderr);
+            if (!acc->fg || (acc->state[0] >= 'K' && (jobs->length > 1))) print_job(acc, stderr);
+            else if (acc->state[0] == 'K') fprintf(stderr, "Terminated\n");
             if (acc->state[0] < 'R') acc->jid = -1;
-            jobs->length--;
-            break;
+            if (acc->pid){
+                jobs->length--;
+                break;
+            }
         }
-        i++;
         acc = acc->next;
     }
 }
 
 int next_job_id(job_list* job_list){
-    int tor = 0; int tmp = 1;
+    int tmp = 1;
     job_node* job = job_list->head;
 
-    while (tmp != tor){
-        tor = tmp;
-        while (job){
-            if (job->jid == tmp) tmp++;
+    while (job){
+        if (job->jid == tmp) {
+            tmp++;
+            job = job_list->head;
+        } else {
             job = job->next;
         }
     }
-    return tor;
+    return tmp;
 }
 
 job_node* getJob(int jobPid,job_list *jobs){
@@ -258,6 +270,22 @@ int getPid(int jid,job_list *jobs){
 
 bool exit_possible(job_list* jobs){
     return (jobs->length == 0);
+}
+
+bool is_valid_syntax(char* str){
+    return (str && (str[0] == '.' || (str[0] >= 'A' && str[0] <= 'z')));
+}
+
+int parse_erreur_syntaxe(int argc, char** argv){
+    for (int i = 0; i < argc; i++){
+        if (argv[i][0] == '>' && !is_valid_syntax(argv[i+1])){
+            char* s = argv[i+1];
+            if (!s) s = "\\n";
+            fprintf(stderr, "jsh: syntax error near unexpected token: %s\n", s);
+            return 1;
+        }
+    }
+    return 0;
 }
 
 //////
@@ -323,7 +351,6 @@ int foreground(char** argv, job_list* jobs){
     }
     return 0;
 }
-
 
 int background(char** argv, job_list* jobs){
     if (argv[2]) {

@@ -72,7 +72,8 @@ int parse(int argc, char** argv, int bg, int lcss, job_list* jobs){
 
     //jobs
     } else if (strcmp(argv[0],"jobs") == 0){ //jobs sans argument
-        affiche_jobs(jobs);
+        if (argc == 1) affiche_jobs(jobs, 0);
+        else if (!strcmp(argv[1], "-d")) affiche_jobs(jobs, 1);
 
     //fg
     }else if (strcmp(argv[0],"fg")==0){
@@ -109,6 +110,8 @@ int main(){
 
     // Boucle lisant l'entrée utilisateur.
     for (;;){
+
+        //purge_job_list(jobs);
         char* prompt = mkprompt(jobs, getenv("PWD"));
         char* query = readline(prompt);
         is_background = 0;
@@ -136,6 +139,12 @@ int main(){
 
         argc = argvlen(_argv);
 
+        if (parse_erreur_syntaxe(argc, _argv)){
+            for (int i=0; i < argc; free(_argv[i++]));
+            free(_argv);
+            continue;
+        }
+
         // Récupération de la valeur des
         // variables d'environnement
         char* is_env = calloc(argc, sizeof(char));
@@ -158,7 +167,7 @@ int main(){
             is_background++;
         }
 
-        job_node* job = new_job_node(_argv, 0, "Running", next_job_id(jobs), 1-is_background);
+        job_node* job = new_job_node(_argv, 0, "Done", 0, 1-is_background);
         add_job_to_list(jobs, job);
 
         char** __argv = parse_substitut(_argv);
