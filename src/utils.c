@@ -307,8 +307,10 @@ void affiche_Jobs_arbo(char* jsh_pidString, job_list* jobs,int tab){ // tab pour
 			            } else{
 				            n=tab;
 			            }
-                        printf("[%d] %s %s %s\n",n, pid, getState(state), name);
+                        
+                        if(strcmp("jsh",name)!=0){ printf("[%d]\t%s\t%s\t%s\n",n, pid, getState(state), name);}
 			            affiche_Jobs_arbo(pid,jobs,n);
+                        
                     }
                 }
 
