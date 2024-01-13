@@ -225,7 +225,6 @@ job_node* getJob(int jobPid,job_list *jobs){
         }
         acc = acc->next;
     }
-    perror("Il n'existe pas de job ayant ce pid");
     return NULL;
 }
 
@@ -279,12 +278,14 @@ void affiche_Jobs_arbo(char* jsh_pidString, job_list* jobs,int tab){ // tab pour
                     }
                     fclose(file);
                     if (strcmp(ppid, jsh_pidString) == 0) {
-                        job_node * j = getJob(atoi(pid),jobs);
+                        job_node * j = getJob(atoi(d->d_name),jobs);
+                        if(j!=NULL){
                         for (int i = 0; i < tab; i++) {
                                 printf("  ");
                          }
                         printf("[%d]\t%d\t%s\t%s\n", j->jid, j->pid,j->state, j->command); //affiche le fils trouvé
                         affiche_Jobs_arbo(pid,jobs, tab + 1);
+                        }
                     }
                 }
             
