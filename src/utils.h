@@ -91,6 +91,12 @@ job_node* new_job_node(char **query, pid_t pid, char* st, int jid, int fg);
 job_list* new_job_list();
 
 /**
+ * Affiche les informations du job @param job
+ * bien formattés sur @param out
+ */
+void print_job(job_node* job, FILE* out);
+
+/**
  * affiche la liste @param jobs de jobs donnée en argument
  **/
 int affiche_jobs(job_list* jobs);

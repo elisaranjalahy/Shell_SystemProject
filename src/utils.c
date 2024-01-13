@@ -110,6 +110,10 @@ job_node* new_job_node(char **query, pid_t pid, char* st, int jid, int fg){
     return newJob;
 }
 
+void print_job(job_node* job, FILE* out){
+    fprintf(out, "[%d]\t%d\t%s\t%s\n", job->jid, job->pid, job->state, job->command);
+}
+
 int affiche_jobs(job_list* jobs){
     job_node* acc = jobs->head;//pour parcourir la liste sans changer le vrai pointeur head
     maj_etat_jobs(jobs);
@@ -132,8 +136,7 @@ void add_job_to_list(job_list* jobList, job_node* job){
             jobList->tail->next=job;
             jobList->tail=job;
         }
-        jobList->length++;
-        if (!job->fg) fprintf(stderr, "[%d]\t%d\t%s\t%s\n", job->jid, (int)job->pid, job->state, job->command);
+        //jobList->length++;
     }
 }
 
@@ -142,8 +145,8 @@ void maj_etat_jobs(job_list* jobs) {
     int st;
 
     while (acc != NULL) {
-
-        if (acc->jid > 0 && acc->state[0] >= 'R'){
+        //if (!acc->pid){acc = acc->next; continue;}
+        if (acc->pid > 0 && acc->jid > 0 && acc->state[0] >= 'R'){
             int val = waitpid(acc->pid, &st, WNOHANG | WCONTINUED);
 
             if (val == -1) {
@@ -190,13 +193,13 @@ void update_job(pid_t pid, int st, job_list* jobs, FILE* output){
             } else {
                 perror("waitpid");
             }
-            if (jobs->main_pid == getpid() && (!acc->fg || acc->state[0] >= 'K')) fprintf(output, "[%d]\t%d\t%s\t%s\n", acc->jid, (int)acc->pid, acc->state, acc->command);
+            if (!acc->fg || acc->state[0] >= 'K') print_job(acc, stderr);
             if (acc->state[0] < 'R') acc->jid = -1;
             jobs->length--;
             break;
         }
         i++;
-        if (acc){acc = acc->next;}
+        acc = acc->next;
     }
 }
 
@@ -292,7 +295,7 @@ int foreground(char** argv, job_list* jobs){
 
             tcsetpgrp(STDIN_FILENO, jobPid);//place le job à l'avant plan/comme celui controlant le terminal
             waitpid(jobPid, &st, WUNTRACED);
-            j->fg=0;
+            //j->fg=0;
             tcsetpgrp(STDIN_FILENO, jobs->main_pid);// réinitialise le groupe de processus de contrôle du terminal
             update_job(jobPid,st,jobs,stderr);
         }
@@ -344,6 +347,11 @@ int background(char** argv, job_list* jobs){
         perror("kill");
         return 1;
     }
+
+    maj_etat_jobs(jobs);
+    job_node* job = getJob(pgid, jobs);
+    job->fg = 0;
+    print_job(job, stderr);
 
     return 0;
 }
