@@ -285,7 +285,7 @@ void affiche_Jobs_arbo(char* jsh_pidString, job_list* jobs,int tab){ // tab pour
                     char name[256] = "";
                     char pid[256] = "";
                     char state[256] = "";
-		    char ppid[256]="";
+		            char ppid[256]="";
                     while (fgets(line, sizeof(line), file)) {
                         if (strncmp(line, "Name:", 5) == 0) {
                             sscanf(line, "Name:\t%s", name);
@@ -294,21 +294,21 @@ void affiche_Jobs_arbo(char* jsh_pidString, job_list* jobs,int tab){ // tab pour
                         } else if (strncmp(line, "State:", 6) == 0) {
                             sscanf(line, "State:\t%s", state);
                         } else if (strncmp(line, "PPid:",5) == 0){
-			   sscanf(line,"PPid:\t%s",ppid);
-			}
+			                    sscanf(line,"PPid:\t%s",ppid);
+			            }
                     }
 
                     fclose(file);
                     if (strcmp(ppid, jsh_pidString) == 0){
-			job_node * j = getJob(atoi(pid),jobs);
-			int n=0;
-			if(j!=NULL){
-				n=j->jid;
-			} else{
-				n=tab;
-			}
+			            job_node * j = getJob(atoi(pid),jobs);
+			            int n=0;
+			            if(j!=NULL){
+				            n=j->jid;
+			            } else{
+				            n=tab;
+			            }
                         printf("[%d] %s %s %s\n",n, pid, getState(state), name);
-			affiche_Jobs_arbo(pid,jobs,n);
+			            affiche_Jobs_arbo(pid,jobs,n);
                     }
                 }
 
