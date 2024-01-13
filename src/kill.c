@@ -3,6 +3,8 @@
 int my_kill(int argc, char** argv, job_list* jobs){
     int sig; char* ptet_pid; pid_t pid;
 
+    // Gestion d'erreur basique et affectation des
+    // variables selon les arguments reçus.
     if (argc < 2 || argc > 3) {
         fprintf(stderr, "kill: invalid number of arguments\n");
         tuto:
@@ -36,6 +38,7 @@ int my_kill(int argc, char** argv, job_list* jobs){
         pid = atoi(ptet_pid);
     }
 
+    // Envoi effectif du signal au bon groupe de processus
     if (kill(-pid, sig) < 0){
         perror("kill");
         return 1;
