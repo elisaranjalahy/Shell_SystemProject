@@ -275,9 +275,9 @@ void affiche_Jobs_arbo(char* jsh_pidString, job_list* jobs,int tab){ // tab pour
             if (atoi(d->d_name) > 0) { //conversion car nom des repertoire sont des string
                 char path[269];
                 snprintf(path, sizeof(path), "/proc/%s/status", d->d_name); //acceder aux info du fichier
-                FILE *file = fopen(path, "r");//ouverture du fichoer en lecture
+                FILE *file = fopen(path, "r");//ouverture du fichier en lecture
                 if (file == NULL) {
-                    perror("erreu à l'ouverture");
+                    perror("erreur à l'ouverture");
                     exit(1);
                 }
                 if (file != NULL) {
@@ -285,7 +285,7 @@ void affiche_Jobs_arbo(char* jsh_pidString, job_list* jobs,int tab){ // tab pour
                     char name[256] = "";
                     char pid[256] = "";
                     char state[256] = "";
-
+		    char ppid[256]="";
                     while (fgets(line, sizeof(line), file)) {
                         if (strncmp(line, "Name:", 5) == 0) {
                             sscanf(line, "Name:\t%s", name);
@@ -293,12 +293,22 @@ void affiche_Jobs_arbo(char* jsh_pidString, job_list* jobs,int tab){ // tab pour
                             sscanf(line, "Pid:\t%s", pid);
                         } else if (strncmp(line, "State:", 6) == 0) {
                             sscanf(line, "State:\t%s", state);
-                        }
+                        } else if (strncmp(line, "PPid:",5) == 0){
+			   sscanf(line,"PPid:\t%s",ppid);
+			}
                     }
 
                     fclose(file);
-                    if(getJob(atoi(pid),jobs)!=NULL){
-                        printf("[0] %s %s %s\n", pid, getState(state), name);
+                    if (strcmp(ppid, jsh_pidString) == 0){
+			job_node * j = getJob(atoi(pid),jobs);
+			int n=0;
+			if(j!=NULL){
+				n=j->jid;
+			} else{
+				n=tab;
+			}
+                        printf("[%d] %s %s %s\n",n, pid, getState(state), name);
+			affiche_Jobs_arbo(pid,jobs,n);
                     }
                 }
 
