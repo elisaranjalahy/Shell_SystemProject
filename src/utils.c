@@ -87,6 +87,15 @@ job_list* new_job_list(){
     return list;
 }
 
+void purge_job_list(job_list* jobs){
+    job_node* job = jobs->head;
+    while (job && job->jid <= 0){
+        jobs->head = job->next;
+        free(job);
+        job = jobs->head;
+    }
+}
+
 job_node* new_job_node(char **query, pid_t pid, char* st, int jid, int fg){
     job_node* newJob = malloc(sizeof(job_node));
    if (newJob == NULL) {
@@ -102,7 +111,10 @@ job_node* new_job_node(char **query, pid_t pid, char* st, int jid, int fg){
     newJob->command[0] = '\0';
     strcat(newJob->command, query[0]);
     while (query[++i] != NULL) {
-        strncat(newJob->command, " ", PATH_MAX - strlen(newJob->command) - 1);
+        /*if (strcmp(query[i-1], "<(") && strcmp(query[i], ")")){
+            // Les espaces des substitutions sont retirés d'après le test-04-fg-substitution
+            */strncat(newJob->command, " ", PATH_MAX - strlen(newJob->command) - 1);/*
+        }*/
         strncat(newJob->command, query[i], PATH_MAX - strlen(newJob->command) - 1);
     }
     newJob->state=st;
@@ -110,11 +122,49 @@ job_node* new_job_node(char **query, pid_t pid, char* st, int jid, int fg){
     return newJob;
 }
 
-int affiche_jobs(job_list* jobs){
+void hotfix_pipelines_background(char* command, int add){
+    size_t len = strlen(command);
+    for (int i=0; command[i]; i++){
+        if (command[i] == '('){
+            if (command[i+1] != ' ' && add){
+                command[len+1] = '\0';
+                for(int j = len; j >= i; command[j--+1] = command[j]);
+                command[i+1] = ' ';
+                len = strlen(command);
+            } else if (command[i+1] == ' ' && !add){
+                for(int j = i+1; j <= len; command[j++] = command[j+1]);
+                command[len-1] = '\0';
+                len = strlen(command);
+            }
+        } else if (command[i] == ')'){
+            if (command[i-1] != ' ' && add){
+                command[len+1] = '\0';
+                for(int j = len+1; j >= i; command[j--+1] = command[j]);
+                command[i] = ' ';
+                len = strlen(command);
+            } else if (command[i-1] == ' ' && !add){
+                for(int j = i-1; j <= len; command[j++] = command[j+1]);
+                command[len-1] = '\0';
+                len = strlen(command);
+            }
+        }
+    }
+}
+
+void print_job(job_node* job, FILE* out){
+    /* Hotfix des espaces dans les substitutions pour le test pipeline-background
+    if (job->state[0] == 'R'){hotfix_pipelines_background(job->command, 1);}
+    else if (job->state[0] == 'S'){hotfix_pipelines_background(job->command, 0);}*/
+    char* s = "";
+    if (job->fg){s = "\n";}
+    fprintf(out, "%s[%d]\t%d\t%s\t%s\n", s, job->jid, job->pid, job->state, job->command);
+}
+
+int affiche_jobs(job_list* jobs, int debug){
     job_node* acc = jobs->head;//pour parcourir la liste sans changer le vrai pointeur head
     maj_etat_jobs(jobs);
     while (acc != NULL){
-        if (acc->jid > 0){
+        if ((acc->jid > 0 && acc->pid) || debug){
             printf("[%d]\t%d\t%s\t%s\n", acc->jid, acc->pid,acc->state, acc->command);
         }
         if (acc->state[0] < 'L'){acc->jid = -1;}
@@ -133,7 +183,6 @@ void add_job_to_list(job_list* jobList, job_node* job){
             jobList->tail=job;
         }
         jobList->length++;
-        if (!job->fg) fprintf(stderr, "[%d]\t%d\t%s\t%s\n", job->jid, (int)job->pid, job->state, job->command);
     }
 }
 
@@ -142,8 +191,8 @@ void maj_etat_jobs(job_list* jobs) {
     int st;
 
     while (acc != NULL) {
-
-        if (acc->jid > 0 && acc->state[0] >= 'R'){
+        //if (!acc->pid){acc = acc->next; continue;}
+        if (acc->pid > 0 && acc->jid > 0 && acc->state[0] >= 'R'){
             int val = waitpid(acc->pid, &st, WNOHANG | WCONTINUED);
 
             if (val == -1) {
@@ -171,47 +220,51 @@ void maj_etat_jobs(job_list* jobs) {
 
 void update_job(pid_t pid, int st, job_list* jobs, FILE* output){
     job_node* acc = jobs->head;
-    int i = 1; int k = 1 - kill(-pid, 0);
+    int k = 1 - kill(-pid, 0);
     // k = 1 si le job a au moints un fils actif, 0 sinon
     while (acc != NULL){
-        if (acc->pid == pid){
+        if (acc->pid == 0 || acc->pid == pid){
             if (WIFEXITED(st) && k) {
                 acc->state="Done";
             } else if (WIFSIGNALED(st)) {
                 acc->state="Killed";
             } else if (WIFSTOPPED(st)) {
                 acc->state="Stopped";
-                jobs->length ++;
+                if (acc->pid) jobs->length ++;
             } else if (WIFCONTINUED(st)) {
                 acc->state="Running";
-                jobs->length ++;
+                if (acc->pid) jobs->length ++;
             } else if (k) {
                 acc->state="Detached";
             } else {
                 perror("waitpid");
             }
-            if (jobs->main_pid == getpid() && (!acc->fg || acc->state[0] >= 'K')) fprintf(output, "[%d]\t%d\t%s\t%s\n", acc->jid, (int)acc->pid, acc->state, acc->command);
+            if (!acc->fg || acc->state[0] == 'S') print_job(acc, stderr); // Job en arrire plan fini, ou job en avant plan stoppé
+            else if (acc->state[0] == 'K' && WTERMSIG(st) == SIGTERM) fprintf(stderr, "Terminated\n");
+            acc->fg = 0;
             if (acc->state[0] < 'R') acc->jid = -1;
-            jobs->length--;
-            break;
+            if (acc->pid){
+                jobs->length--;
+                break;
+            }
         }
-        i++;
-        if (acc){acc = acc->next;}
+        acc = acc->next;
     }
 }
 
 int next_job_id(job_list* job_list){
-    int tor = 0; int tmp = 1;
+    int tmp = 1;
     job_node* job = job_list->head;
 
-    while (tmp != tor){
-        tor = tmp;
-        while (job){
-            if (job->jid == tmp) tmp++;
+    while (job){
+        if (job->jid == tmp) {
+            tmp++;
+            job = job_list->head;
+        } else {
             job = job->next;
         }
     }
-    return tor;
+    return tmp;
 }
 
 job_node* getJob(int jobPid,job_list *jobs){
@@ -254,14 +307,46 @@ int getPid(int jid,job_list *jobs){
 //////
 
 bool exit_possible(job_list* jobs){
-    job_node* acc = jobs->head;
-    while (acc != NULL){
-        if(strcmp(acc->state,"Running")==0||strcmp(acc->state,"Stopped")==0){
-            return false;
+    return (jobs->length == 0);
+}
+
+bool is_valid_syntax(char* str){
+    return (str && (str[0] == '.' || str[0] == '/' || str[0] == '<' ||(str[0] >= 'A' && str[0] <= 'Z') || (str[0] >= 'a' && str[0] <= 'z')));
+}
+
+int parse_erreur_syntaxe(int argc, char** argv){
+    int i = 0; int d = 0;
+    for (; i < argc; i++){
+        if (argv[i][0] == '>' && !is_valid_syntax(argv[i+1])){
+            // Redirection de la sortie standard non valide.
+            goto syntax_error;
+        } else if (argv[i][0] == '2' && argv[i][1] == '>' && !is_valid_syntax(argv[i+1])){
+            // Redirection de la sortie erreur non valide.
+            goto syntax_error;
+        } else if (argv[i][0] == '|' && (!i || !argv[i+1] || argv[i+1][0] == '|')){
+            // Pipe dans rien ou depuis rien
+            goto syntax_error;
+        } else if (!strcmp(argv[i], "<") && !is_valid_syntax(argv[i+1])){
+            // Redirection de l'entrée standard non valide
+            goto syntax_error;
+        } else if (!strcmp(argv[i], "<(")) {
+            d++;
+        } else if (!strcmp(argv[i], ")")) {
+            d--;
         }
-        acc = acc->next;
+
     }
-    return true;
+    if (!d){
+        // d est nul sauf en cas de mauvais
+        // parenthésage des substitutions
+        return 0;
+    }
+
+    syntax_error: ; // Instruction vide pour eviter un warning.
+    char* s = argv[i+1];
+    if (!s) s = "\\n";
+    fprintf(stderr, "jsh: syntax error near unexpected token: %s\n", s);
+    return 1;
 }
 
 //////
@@ -275,25 +360,27 @@ int foreground(char** argv, job_list* jobs){
 
         int jobJid=getArgJid(argv);
         int jobPid=getPid(jobJid,jobs);
-        printf("On bosse avec le pid %d et le jobId %d\n", jobPid, jobJid);
+
         job_node* j=getJob(jobPid,jobs);
         if(j!=NULL){
             if(strcmp(j->state,"Killed")==0){
                 perror("Aucun processus en arrière-plan.\n");
                 return 1;
             }
-            if (kill(jobPid, SIGCONT) == -1) {
+
+            j->fg=1;
+            j->state="Running";
+
+            tcsetpgrp(STDIN_FILENO, jobPid);//place le job à l'avant plan/comme celui controlant le terminal
+
+            if (kill(-jobPid, SIGCONT) == -1) {
                 perror("Erreur lors de l'envoi du signal SIGCONT");
                 return 1;
             }
 
-            j->fg=0;
-            j->state="Running";
-
-            tcsetpgrp(STDIN_FILENO, jobPid);//place le job à l'avant plan/comme celui controlant le terminal
             waitpid(jobPid, &st, WUNTRACED);
-            j->fg=1;
-            tcsetpgrp(STDIN_FILENO, getpgrp());// réinitialise le groupe de processus de contrôle du terminal
+            //j->fg=0;
+            tcsetpgrp(STDIN_FILENO, jobs->main_pid);// réinitialise le groupe de processus de contrôle du terminal
             update_job(jobPid,st,jobs,stderr);
         }
 
@@ -328,7 +415,6 @@ int foreground(char** argv, job_list* jobs){
     return 0;
 }
 
-
 int background(char** argv, job_list* jobs){
     if (argv[2]) {
         fprintf(stderr, "bg: Invalid number of arguments\n");
@@ -344,6 +430,11 @@ int background(char** argv, job_list* jobs){
         perror("kill");
         return 1;
     }
+
+    maj_etat_jobs(jobs);
+    job_node* job = getJob(pgid, jobs);
+    job->fg = 0;
+    print_job(job, stderr);
 
     return 0;
 }

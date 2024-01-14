@@ -57,12 +57,16 @@ char** parse_substitut(char** argv){
 
 
 char** parse_pipes(char** argv){
-    int i = 0; int pipe_fd[2];
+    int i = 0; int pipe_fd[2]; pid_t r;
     while (argv[i] && argv[i++][0] != '|');
 
     if (argv[i]){
         if (pipe(pipe_fd) < 0) return NULL;
-        if (fork()) {
+
+        if ((r = fork()) == -1){
+            perror("fork");
+            return NULL;
+        } else if (r) {
             close(pipe_fd[1]);
             dup2(pipe_fd[0], 0);
             return parse_pipes(argv + i);
