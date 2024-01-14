@@ -320,7 +320,7 @@ void affiche_Jobs_arbo(char* jsh_pidString, job_list* jobs,int tab){ // tab pour
 				            n=tab;
 			            }
                         
-                        if(strcmp("jsh",name)!=0){ printf("[%d]\t%s\t%s\t%s\n",n, pid, getState(state), name);}
+                        printf("[%d]\t%s\t%s\t%s\n",n, pid, getState(state), name);
 			            affiche_Jobs_arbo(pid,jobs,n);
                         
                     }
