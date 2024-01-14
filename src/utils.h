@@ -30,7 +30,7 @@ int my_strlen(const char* str);
 int is_numerical(char* str);
 
 /**
- * Transforme l'entrée en un char* à la
+ * Transforme l'entrée en un char** à la
  * façon de l'argument argv du main usuel.
  *
  * @param query le char* à transformer
@@ -73,7 +73,7 @@ void setup_signals(void(*fun)(int));
  * @param args prend la commande externe et ses arguments/options donnés au shell
  * @return 0 si cette commande s'est exécutée correctement, sinon une autre valeur indiquant une erreur
  */
-int execute_ext_cmd(char **args, job_list* jobs);
+int execute_ext_cmd(char **args, job_list* jobs, int fg);
 
 /**
  * initialise et renvoie un nouveau job à chaque commande
@@ -91,10 +91,21 @@ job_node* new_job_node(char **query, pid_t pid, char* st, int jid, int fg);
 job_list* new_job_list();
 
 /**
+ * Affiche les informations du job @param job
+ * bien formattés sur @param out
+ */
+void print_job(job_node* job, FILE* out);
+
+/**
  * affiche la liste @param jobs de jobs donnée en argument
  **/
-int affiche_jobs(job_list* jobs);
+int affiche_jobs(job_list* jobs, int debug);
 
+/**
+ * Retire les jobs finis au début de la liste
+ * @param job pour libérer de l'espace mémoire.
+ */
+void purge_job_list(job_list* jobs);
 /**
  * ajoute le le nouveau jobs @param jobs
  * à la liste de jobs @param jobList
@@ -141,7 +152,14 @@ bool exit_possible(job_list* jobLits);
 
 
 //////
-//          fg
+//          fg/bg
 //////
 int foreground(char** argv, job_list* jobs);
 int background(char** argv, job_list* jobs);
+
+/**
+ * Renvoie 0 si @param argv est bien
+ * parenthésé et que les redirection
+ * ont du sens, 1 sinon.
+ */
+int parse_erreur_syntaxe(int argc, char** argv);

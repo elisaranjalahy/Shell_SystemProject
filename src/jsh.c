@@ -31,23 +31,11 @@ char* mkprompt(job_list* jobs, char* cur_path){
     return strcat(prompt, "\001\033[0m\002$ ");
 }
 
-
 int parse(int argc, char** argv, int bg, int lcss, job_list* jobs){
     int last_cmd_success = lcss;
-    int pid;
-
-    if (bg) {
-        if ((pid = fork())){
-            job_node* job = new_job_node(argv, pid, "Running", next_job_id(jobs), 0);
-            add_job_to_list(jobs, job);
-        } else {
-            setup_signals(SIG_DFL);
-            setpgid(0, getpid());
-            exit(parse(argc, argv, 0, last_cmd_success, jobs));
-        }
 
     //cd
-    } else if (strcmp(argv[0], "cd") == 0){
+    if (strcmp(argv[0], "cd") == 0){
         last_cmd_success = my_cd(getenv("PWD"), argv + 1);
 
     //kill
@@ -55,8 +43,8 @@ int parse(int argc, char** argv, int bg, int lcss, job_list* jobs){
         last_cmd_success = my_kill(argc, argv, jobs);
 
     //pwd
-    } else if (strcmp(argv[0], "pwd") == 0){
-            last_cmd_success = pwd(getenv("PWD"));
+    // Cette commande est traitée à part car contrairement
+    // aux autres elle n'a pas d'intéraction avec le shell
 
     //exit
     } else if (strcmp(argv[0], "exit") == 0){
@@ -84,7 +72,8 @@ int parse(int argc, char** argv, int bg, int lcss, job_list* jobs){
 
     //jobs
     } else if (strcmp(argv[0],"jobs") == 0){ //jobs sans argument
-        affiche_jobs(jobs);
+        if (argc == 1) affiche_jobs(jobs, 0);
+        else if (!strcmp(argv[1], "-d")) affiche_jobs(jobs, 1);
 
     //fg
     }else if (strcmp(argv[0],"fg")==0){
@@ -95,7 +84,7 @@ int parse(int argc, char** argv, int bg, int lcss, job_list* jobs){
 
     //Exécution d'une commande externe
     } else {
-        last_cmd_success = execute_ext_cmd(argv, jobs);
+        last_cmd_success = execute_ext_cmd(argv, jobs, 1-bg);
     }
     return last_cmd_success;
 }
@@ -109,9 +98,7 @@ int main(){
     rl_outstream = stderr;  // Affichage du prompt sur la sortie erreur
 
     int last_cmd_success = 0;
-    int argc;
-
-    pid_t parent_pid = getpid();
+    int argc; int is_background;
 
     setup_signals(SIG_IGN);
 
@@ -121,8 +108,11 @@ int main(){
 
     // Boucle lisant l'entrée utilisateur.
     for (;;){
+
+        purge_job_list(jobs);
         char* prompt = mkprompt(jobs, getenv("PWD"));
         char* query = readline(prompt);
+        is_background = 0;
 
         free(prompt);
 
@@ -142,57 +132,35 @@ int main(){
             free(query);
             continue;
         }
-	    char** _argv = my_to_argv(query);
+	    char** argv = my_to_argv(query);
         free(query);
 
-        argc = argvlen(_argv);
+        argc = argvlen(argv);
 
-        // Récupération de la valeur des
-        // variables d'environnement
-        char* is_env = calloc(argc, sizeof(char));
-        char* k;
-        for (int i = 0; i<argc; i++){
-            if (_argv[i][0] == '$'){
-                k = getenv(_argv[i]+1);
-                if (k){
-                    free(_argv[i]);
-                    _argv[i] = k;
-                    is_env[i]++;
-                }
-            }
-        }
-
-        char** __argv = parse_substitut(_argv);
-        char** argv = parse_pipes(__argv);
-
-        if (redirections(argv)){
-            for(int i = 0; i < argvlen(argv); free(argv[i++]));
+        if (parse_erreur_syntaxe(argc, argv)){
+            for (int i=0; i < argc; free(argv[i++]));
             free(argv);
-            last_cmd_success = 1;
             continue;
         }
-
-        argc = argvlen(argv);
 
         if (strcmp(argv[argc-1], "&") == 0){
             free(argv[argc-1]);
             argv[argc-1] = NULL;
-            last_cmd_success = parse(argc-1 , argv, 1, last_cmd_success, jobs);
-        } else {
-            last_cmd_success = parse(argc, argv, 0, last_cmd_success, jobs);
+            argc--;
+            is_background++;
         }
 
-        for (int i = 0; _argv[i]; i++){
-            if (!is_env[i]) free(_argv[i]);
+        last_cmd_success = parse(argc, argv, is_background, last_cmd_success, jobs);
+
+
+        for (int i = 0; i < argc; i++){
+            if (argv[i]) free(argv[i]);
         }
-        free(_argv);
-        free(is_env);
+        free(argv);
 
         dup2(stdin_fd, 0);
         dup2(stdout_fd, 1);
         dup2(stderr_fd, 2);
-
-        if (getpid() != parent_pid) exit(3);
     }
     return 0;
 }
