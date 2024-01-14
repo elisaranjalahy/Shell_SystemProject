@@ -99,8 +99,13 @@ void print_job(job_node* job, FILE* out);
 /**
  * affiche la liste @param jobs de jobs donnée en argument
  **/
-int affiche_jobs(job_list* jobs);
+int affiche_jobs(job_list* jobs, int debug);
 
+/**
+ * Retire les jobs finis au début de la liste
+ * @param job pour libérer de l'espace mémoire.
+ */
+void purge_job_list(job_list* jobs);
 /**
  * ajoute le le nouveau jobs @param jobs
  * à la liste de jobs @param jobList
@@ -153,3 +158,5 @@ bool exit_possible(job_list* jobLits);
 //////
 int foreground(char** argv, job_list* jobs);
 int background(char** argv, job_list* jobs);
+
+int parse_erreur_syntaxe(int argc, char** argv);
