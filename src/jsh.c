@@ -71,9 +71,23 @@ int parse(int argc, char** argv, int bg, int lcss, job_list* jobs){
         free(lcs);
 
     //jobs
-    } else if (strcmp(argv[0],"jobs") == 0){ //jobs sans argument
-        if (argc == 1) affiche_jobs(jobs, 0);
-        else if (!strcmp(argv[1], "-d")) affiche_jobs(jobs, 1);
+    } else if (strcmp(argv[0],"jobs") == 0){
+        if(argc ==2){
+            if(strcmp(argv[1],"-t")==0){
+                char jsh_pid_toString[25];
+                snprintf(jsh_pid_toString, sizeof(jsh_pid_toString), "%d", getpid()); //conversion du pid en chaine de cara
+                affiche_Jobs_arbo(jsh_pid_toString,jobs, 0);
+            }else{
+                perror("Options non reconnue");
+                last_cmd_success=1;
+            }
+        }else if(argc >2){
+            perror ("trop d'arguments");
+        }else{
+            if (argc == 1) affiche_jobs(jobs, 0);
+            else if (!strcmp(argv[1], "-d")) affiche_jobs(jobs, 1);
+        }
+
 
     //fg
     }else if (strcmp(argv[0],"fg")==0){

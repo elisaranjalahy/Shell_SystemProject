@@ -11,6 +11,7 @@
 #include <sys/types.h>
 #include <signal.h>
 #include <stdbool.h>
+#include <dirent.h>
 
 
 #ifndef PATH_MAX

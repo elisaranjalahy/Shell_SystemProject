@@ -183,6 +183,7 @@ void add_job_to_list(job_list* jobList, job_node* job){
             jobList->tail=job;
         }
         jobList->length++;
+
     }
 }
 
@@ -242,6 +243,7 @@ void update_job(pid_t pid, int st, job_list* jobs, FILE* output){
             if (!acc->fg || acc->state[0] == 'S') print_job(acc, stderr); // Job en arrire plan fini, ou job en avant plan stoppé
             else if (acc->state[0] == 'K' && WTERMSIG(st) == SIGTERM) fprintf(stderr, "Terminated\n");
             acc->fg = 0;
+
             if (acc->state[0] < 'R') acc->jid = -1;
             if (acc->pid){
                 jobs->length--;
@@ -275,7 +277,6 @@ job_node* getJob(int jobPid,job_list *jobs){
         }
         acc = acc->next;
     }
-    perror("Il n'existe pas de job ayant ce pid");
     return NULL;
 }
 
@@ -299,6 +300,77 @@ int getPid(int jid,job_list *jobs){
     }
     perror ("Ce PID n'existe pas");
     return 1;
+}
+
+char* getState(char* s){
+    if(strcmp(s,"R")==0){
+        return "Running";
+    }
+    if(strcmp(s,"T")==0){
+        return "Stopped";
+    }
+    if(strcmp(s,"S")==0){
+        return "Running";
+    }
+    if(strcmp(s,"K")==0){
+        return "Killed";
+    }
+    return "Done";
+}
+
+void affiche_Jobs_arbo(char* jsh_pidString, job_list* jobs,int tab){ // tab pour le calcul de l'arbre
+    DIR *dir;
+    struct dirent *d;
+    dir = opendir("/proc");
+    if (dir != NULL) {
+        while ((d = readdir(dir)) && d != NULL) {
+            if (atoi(d->d_name) > 0) { //conversion car nom des repertoire sont des string
+                char path[269];
+                snprintf(path, sizeof(path), "/proc/%s/status", d->d_name); //acceder aux info du fichier
+                FILE *file = fopen(path, "r");//ouverture du fichier en lecture
+                if (file == NULL) {
+                    perror("erreur à l'ouverture");
+                    exit(1);
+                }
+                if (file != NULL) {
+                    char line[256];
+                    char name[256] = "";
+                    char pid[256] = "";
+                    char state[256] = "";
+		            char ppid[256]="";
+                    while (fgets(line, sizeof(line), file)) {
+                        if (strncmp(line, "Name:", 5) == 0) {
+                            sscanf(line, "Name:\t%s", name);
+                        } else if (strncmp(line, "Pid:", 4) == 0) {
+                            sscanf(line, "Pid:\t%s", pid);
+                        } else if (strncmp(line, "State:", 6) == 0) {
+                            sscanf(line, "State:\t%s", state);
+                        } else if (strncmp(line, "PPid:",5) == 0){
+			                    sscanf(line,"PPid:\t%s",ppid);
+			            }
+                    }
+
+                    fclose(file);
+                    if (strcmp(ppid, jsh_pidString) == 0){
+			            job_node * j = getJob(atoi(pid),jobs);
+			            int n=0;
+			            if(j!=NULL){
+				            n=j->jid;
+			            } else{
+				            n=tab;
+			            }
+                        
+                        printf("[%d]\t%s\t%s\t%s\n",n, pid, getState(state), name);
+			            affiche_Jobs_arbo(pid,jobs,n);
+                        
+                    }
+                }
+
+            }
+            
+        }
+    }
+    closedir(dir);
 }
 
 
@@ -347,6 +419,7 @@ int parse_erreur_syntaxe(int argc, char** argv){
     if (!s) s = "\\n";
     fprintf(stderr, "jsh: syntax error near unexpected token: %s\n", s);
     return 1;
+
 }
 
 //////
