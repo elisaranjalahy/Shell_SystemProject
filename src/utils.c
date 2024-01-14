@@ -111,10 +111,7 @@ job_node* new_job_node(char **query, pid_t pid, char* st, int jid, int fg){
     newJob->command[0] = '\0';
     strcat(newJob->command, query[0]);
     while (query[++i] != NULL) {
-        /*if (strcmp(query[i-1], "<(") && strcmp(query[i], ")")){
-            // Les espaces des substitutions sont retirés d'après le test-04-fg-substitution
-            */strncat(newJob->command, " ", PATH_MAX - strlen(newJob->command) - 1);/*
-        }*/
+        strncat(newJob->command, " ", PATH_MAX - strlen(newJob->command) - 1);
         strncat(newJob->command, query[i], PATH_MAX - strlen(newJob->command) - 1);
     }
     newJob->state=st;
@@ -452,7 +449,7 @@ int foreground(char** argv, job_list* jobs){
             }
 
             waitpid(jobPid, &st, WUNTRACED);
-            //j->fg=0;
+            
             tcsetpgrp(STDIN_FILENO, jobs->main_pid);// réinitialise le groupe de processus de contrôle du terminal
             update_job(jobPid,st,jobs,stderr);
         }

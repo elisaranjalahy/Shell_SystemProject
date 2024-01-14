@@ -116,9 +116,6 @@ int main(){
 
     setup_signals(SIG_IGN);
 
-    int stdin_fd = dup(0);
-    int stdout_fd = dup(1);
-    int stderr_fd = dup(2);
 
     // Boucle lisant l'entrée utilisateur.
     for (;;){
@@ -172,9 +169,7 @@ int main(){
         }
         free(argv);
 
-        dup2(stdin_fd, 0);
-        dup2(stdout_fd, 1);
-        dup2(stderr_fd, 2);
+    
     }
     return 0;
 }

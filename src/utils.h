@@ -140,10 +140,15 @@ int getCommand(job_list *jobList, int jid);
  **/
 int getArgJid (char ** argv);
 
-int getPid(int jid,job_list *jobs);
 
+/**
+ * Récupere le jobs de pid @param jobPid dans la liste de jobs
+ **/
 job_node* getJob(int jobPid,job_list *jobs);
 
+/**
+ * fonctions appelée recursivement pour jobs -t
+ **/
 void affiche_Jobs_arbo(char *jsh_pidString, job_list * jobs, int tab);
 
 
