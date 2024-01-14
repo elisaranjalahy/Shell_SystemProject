@@ -12,10 +12,10 @@ ________________________________________________________________________________
 
 Ce fichier contient :
 
--> [color=#26B260]*toutes les bibliotheques utiles*[/color] au bon fonctionnement du code
--> [color=#26B260]*les signatures*[/color] de nos implémentations de **commandes internes**
--> [color=#26B260]*les signatures*[/color] de fonctions utiles aux **redirections**
--> [color=#26B260]*les structures*[/color] utilisées pour la gestion des **jobs** :
+-> **toutes les bibliotheques utiles** au bon fonctionnement du code
+-> **les signatures** de nos implémentations de **commandes internes**
+-> **les signatures** de fonctions utiles aux **redirections**
+-> **les structures** utilisées pour la gestion des **jobs** :
 
 -> Un **job** est représenté par une **struct job_node**
 -> Une **liste de jobs** est représentée par une **struct job_list**
@@ -25,37 +25,37 @@ Ce fichier contient :
 
 Ce fichier contient :
 
--> [color=#26B260]*des fonctions utilitaires/auxiliaires*[/color]
--> [color=#26B260]*les fonctions[/color] utiles à la manipulations de **jobs**
+-> **des fonctions utilitaires/auxiliaires**
+-> **les fonctions** utiles à la manipulations de **jobs**
 -> la commande ***exit***
--> la fonctions de gestions de [color=#26B260]*signaux*[/color]
--> les commandes [color=#26B260]*background* (***bg***)[/color] et [color=#26B260]*foreground* (***fg***) [/color)]
+-> la fonctions de gestions de **signaux**
+-> les commandes **background** (***bg***) et **foreground** (***fg***)
 
 
 ### *redirect.c*
 
 Ce fichier contient :
 
--> [color=#26B260]*les fonctions*[/color] utiles aux **redirections** et ses **options**
+-> **les fonctions** utiles aux **redirections** et ses **options**
 
 
 ### *my_cd.c*
 
 Ce fichier contient :
 
--> la commande [color=#26B260]*my_cd* (***cd***)[/color]
+-> la commande **my_cd** (***cd***)
 
 ### *kill.c*
 
 Ce fichier contient :
 
--> la commande [color=#26B260]*my_kill* (***kill***)[/color]
+-> la commande **my_kill** (***kill***)
 
 ### *ext_cmd.c*
 
 Ce fichier contient :
 
--> la fonction [color=#26B260]*gérant les ***commandes externes*** reçu par notre shell*[/color]
+-> la fonction **gérant les ***commandes externes*** reçu par notre shell**
 
 __________________________________________________________________________________________________________________________________________________________
 
@@ -63,8 +63,8 @@ ________________________________________________________________________________
 
 Le fichier *jsh.c* contient le **main** et deux fonctions indispensables au bon fonctionnement de notre projet:
 
--> ***parse*** : elle [color=#26B260]*identifie les commandes reçues*[/color] (internes ou externes) par le shell et [color=#26B260]agit en conséquences[/color]
--> ***mkprompt*** : elle [color=#26B260]*génère notre prompt*[/color] de façon esthétique. Elle indique [color=#26B260]le nombre de jobs en cours *entre crochets*[/color] et [color=#26B260]le chemin actuel[/color]. 
+-> ***parse*** : elle **identifie les commandes reçues** (internes ou externes) par le shell et **agit en conséquences**
+-> ***mkprompt*** : elle **génère notre prompt** de façon esthétique. Elle indique **le nombre de jobs en cours *entre crochets** et **le chemin actuel**
 
 
 Le **main** :
@@ -84,9 +84,9 @@ Le **main** :
 
 Le **parser** :
 
-La fonction "parse" reçoit l'entrée utilisateur (dans un ***char***) et [color=#26B260] identifie [/color] la commande demandée.
+La fonction "parse" reçoit l'entrée utilisateur (dans un ***char***) et **identifie** la commande demandée.
 
-- Les [color=#26B260]commandes internes[/color] sont ***explicitement*** indiquées par des commentaires. Si le parser en reçoit une, elle appelle la fonctions associée.
+- Les **commandes internes** sont ***explicitement*** indiquées par des commentaires. Si le parser en reçoit une, elle appelle la fonctions associée.
 
-- Si la commande reçut est une [color=#26B260]commande externe[/color], le parser va dans le ***else*** et appelle la fonction **execute_ext_cmd**
+- Si la commande reçut est une **commande externe**, le parser va dans le ***else*** et appelle la fonction **execute_ext_cmd**
 
